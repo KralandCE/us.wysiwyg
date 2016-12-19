@@ -2,7 +2,7 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.15
+// @version   1.0.16
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
@@ -21,7 +21,12 @@ var OPTION_REFORMATER_TEXTE = 1;
 /* Fin des options
  *********************************************************************************************** */
 
+
 /*
+1.0.16
+Changing event from onmouseclick to onmousedown since mouse click is focusing the link tag instead of keeping it in the textarea. Mouse down does not have that side effect.
+
+
 1.0.15
 Removing "listeners" option. Previsualisation is smart enough to update itself.
 Preview is udpated when mouse is over, when mouse is clicked, when key is pressed and when a tag is used.
@@ -824,7 +829,7 @@ function createPreview(textarea) {
 	Previews.push(textarea);
 
 	var container = textarea.parentNode;
-	
+
 	var prev = document.createElement('div');
 	prev.id = "preview" + id;
 	prev.className = "bigcadre";
@@ -843,7 +848,7 @@ function createPreview(textarea) {
 	paragraph.appendChild(textarea);
 	paragraph.appendChild(prev);
 	paragraph.appendChild(footer);
-	
+
 	textarea.addEventListener('keyup', updateAllPreviews, false);
 	textarea.addEventListener('mouseup', mouseUp, false);
 }
@@ -942,7 +947,7 @@ function createSmileysTable(tableNum, areaId) {
 	for (i = 0; i < SMILEY_COUNT_PER_TAB; i++) {
 		var td = document.createElement('td');
 		var a = document.createElement('a');
-		a.onclick = makeSmileyOnclickHandler(SMILEYS[(SMILEY_COUNT_PER_TAB * tableNum) + i], areaId);
+		a.onmousedown = makeSmileyOnclickHandler(SMILEYS[(SMILEY_COUNT_PER_TAB * tableNum) + i], areaId);
 		a.href = '#';
 		a.areaId = areaId.substr("area".length, areaId.length);
 
@@ -957,7 +962,7 @@ function createSmileysTable(tableNum, areaId) {
 
 function add_tool(node, str, tag, id, is_image) {
 	var a = document.createElement('a');
-	a.onclick = makeTagOnclickHandler(tag, id);
+	a.onmousedown = makeTagOnclickHandler(tag, id);
 	a.href = '#';
 	a.id = id.substr("area".length, id.length);
 
@@ -1170,7 +1175,7 @@ function main() {
 
 		textAreaByName.focus();
 	}
-	
+
 	updateAllPreviews();
 }
 
