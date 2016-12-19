@@ -2,10 +2,12 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.9
+// @version   1.0.10
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
+
+/*jslint passfail: true, plusplus: true, vars: true, browser: true, sloppy: true*/
 
 /*
 ***********************************************************************************************
@@ -28,283 +30,679 @@ var smiley = 1;
 // 0 désactive cette option
 
 /* Fin des options
-*********************************************************************************************** */
+ *********************************************************************************************** */
 
-    var b_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHT4ACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJqcl5MDoKGVkZKiAKaWmKiZpImro6qgp6+tswOuspOeuLe2lLWmtJi2ob2WnJq7yLrLlYEAOw==";
-    var i_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHXIACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJUYA54DGJSXlTEDMKGinDADMZmjk6WnrpQYq62umABAA0SolZGSGDsDO5qQmJ09vr+JnZ+gmq/GqdO/udWb2JOBADs=";
-    var u_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHVYACgoOEhYQEAACIiomLjgACiZKTlJICi5IDmpqVkZOciaCWmACilZCVmisrp5eVK5udp4mwA5SumbahupaUoqaQpKWbvL2zs7i7xMWox63Czs3Rk4EAOw==";
-    var s_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHXoACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJMYA54DGJmXiZ01iTqglZGkA6aaiaOsQkGhogCdn7metbCYkhg9qZSrtwNFp8KTsaXIvJacuc6Wvq/P1arU18TXkoEAOw==";
-    var left_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHR4ACgoOEhYQEAACIiomLjgACiZKTlJICiAOZmpubkJWfk5cAnJyUkaCgoqSrA56on6qsraGvsJiynae1obesprumi8CuwwCBADs=";
-    var center_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHSYACgoOEhYQEAACIiomLjgACiZKTlJICBAOZmpubiZGVoJaLnJyTn6Ggl6SrA56ooZeJrJmmr6mYs52QtpWxALm1vKaLwrvFiYEAOw==";
-    var right_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHSYACgoOEhYQEAACIiomLjgACiZKTlJICBAOZmpubiZGVoJaLiZycnqGol6WrA6eooJeTrJmur5Sqs52QtpWxkrm1vJ6jwp/CiYEAOw==";
-    var quote_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHaYACgoOEhYQEA4mKi4wWAgADhpIDFwKIhJGDigKUj5kCF6GTlZcCPIongpsDKZ6qqSCfmg2WkauJnLiUAJCShp29jMKcLa6+mMWXwoyclb3HmqS2y6vOssediNTCxQAEKeCh4g2h4C0tgQA7";
-    var img_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHjoACgoOEhYQEAACIiomLjgACAAOTlJWWkAQDFZucmxYAOQAWA5CSnZ0sJgM/kpiap5smLCwDo6WvsAMsRjQAvQKZsJupJj+2kbinoKKtyJ6jr5+bOaTOFRYmFxc0FQMmm82ZnwPa5AMgIAMCx63Z2u/n6QAmt+QX9vjok7fv9+Xl+lxZGkipVKKDCBMmCgQAOw==";
-    var url_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHYYACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJqcl5yZkQADo6OJpKWJlwMbAqwbo62xA6mrAqe3tbO2tiurG7+/A72vkLm4pKy6BLWusK62iJHLp6bUqZ+g2JWe2pbdk4EAOw==";
-    var mail_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHoIACgoOEhYQAiIkfHYwEiYkCjwCMHR8aHZIAkQAaACIfM4sdA5kCHh4aGh+WIqgeraekAhqzIiIaBLm6NxkZsh4ZGp8aFrq5Qz6+msAlzSUDAsY+HgS/vde9xjc31Zq00cbY17+CxgQZOMIaJd2mGea6GjMdOMru8LmXHbi/A/7+z0qo2vdMFgBHiHB0mHFpFYASkCSlstVBRKlMqxxmCgQAOw==";
+var b_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHT4ACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJqcl5MDoKGVkZKiAKaWmKiZpImro6qgp6+tswOuspOeuLe2lLWmtJi2ob2WnJq7yLrLlYEAOw==";
+var i_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHXIACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJUYA54DGJSXlTEDMKGinDADMZmjk6WnrpQYq62umABAA0SolZGSGDsDO5qQmJ09vr+JnZ+gmq/GqdO/udWb2JOBADs=";
+var u_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHVYACgoOEhYQEAACIiomLjgACiZKTlJICi5IDmpqVkZOciaCWmACilZCVmisrp5eVK5udp4mwA5SumbahupaUoqaQpKWbvL2zs7i7xMWox63Czs3Rk4EAOw==";
+var s_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHXoACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJMYA54DGJmXiZ01iTqglZGkA6aaiaOsQkGhogCdn7metbCYkhg9qZSrtwNFp8KTsaXIvJacuc6Wvq/P1arU18TXkoEAOw==";
+var left_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHR4ACgoOEhYQEAACIiomLjgACiZKTlJICiAOZmpubkJWfk5cAnJyUkaCgoqSrA56on6qsraGvsJiynae1obesprumi8CuwwCBADs=";
+var center_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHSYACgoOEhYQEAACIiomLjgACiZKTlJICBAOZmpubiZGVoJaLnJyTn6Ggl6SrA56ooZeJrJmmr6mYs52QtpWxALm1vKaLwrvFiYEAOw==";
+var right_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHSYACgoOEhYQEAACIiomLjgACiZKTlJICBAOZmpubiZGVoJaLiZycnqGol6WrA6eooJeTrJmur5Sqs52QtpWxkrm1vJ6jwp/CiYEAOw==";
+var quote_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHaYACgoOEhYQEA4mKi4wWAgADhpIDFwKIhJGDigKUj5kCF6GTlZcCPIongpsDKZ6qqSCfmg2WkauJnLiUAJCShp29jMKcLa6+mMWXwoyclb3HmqS2y6vOssediNTCxQAEKeCh4g2h4C0tgQA7";
+var img_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHjoACgoOEhYQEAACIiomLjgACAAOTlJWWkAQDFZucmxYAOQAWA5CSnZ0sJgM/kpiap5smLCwDo6WvsAMsRjQAvQKZsJupJj+2kbinoKKtyJ6jr5+bOaTOFRYmFxc0FQMmm82ZnwPa5AMgIAMCx63Z2u/n6QAmt+QX9vjok7fv9+Xl+lxZGkipVKKDCBMmCgQAOw==";
+var url_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHYYACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJqcl5yZkQADo6OJpKWJlwMbAqwbo62xA6mrAqe3tbO2tiurG7+/A72vkLm4pKy6BLWusK62iJHLp6bUqZ+g2JWe2pbdk4EAOw==";
+var mail_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHoIACgoOEhYQAiIkfHYwEiYkCjwCMHR8aHZIAkQAaACIfM4sdA5kCHh4aGh+WIqgeraekAhqzIiIaBLm6NxkZsh4ZGp8aFrq5Qz6+msAlzSUDAsY+HgS/vde9xjc31Zq00cbY17+CxgQZOMIaJd2mGea6GjMdOMru8LmXHbi/A/7+z0qo2vdMFgBHiHB0mHFpFYASkCSlstVBRKlMqxxmCgQAOw==";
+
+var smileyRegexps = [':[)]', ';[)]', '8[)]', ':\]', ':D', ':p', ':6', '3[)]', ':,', ':[(]', ':[[]', '[)][[]', '![(]', '[ù^]\]', 'x[(]', '8[(]', 'o[)]', '%[(]', ':o', ':[|]', '[)][|]', ';[(]', ';[[]', ':f', ';o', ';[|]', '[[][(]', '0[)]', ':B', ':=', '8\]', '[|][)]', 'O[)]', '8î', '8Î', 'j[)]', 'p[)]', '[ù^][)]', '[)]f', ':î', ':Î', '[%][)]', '8O', 'OX', '[)]%', 'oX', ':[.]', 'o[(]', 'hp', ':n', ':P', ':x', '8p', 'j[|]', 'kD', 'k\]', ';p', ':l', ':[+]', ':-', 'VV', '%%', 'Q[)]', 'fr', 'en', 'de', 'es', 'it', 'nl', 'ca', 'sw', 'jp', '[*]t', '[*]j', '[*]o', '[*]r', '[*]v', '[*]c', '[*]b', '[*]m', '[*]n', '=o', '=n', '=S', 'ty', 'mt', 'so', 'iz', 'jo', 'tk', 'pk', 'ka', 'ke', '3i', '[+][)]', 'st', '[§]c', '[§]o', '[§]g', 'co', '[§]p', '=[)]', '=!', '=k', '=y', '[§]x', '[§]b', '[§]3', '[§];', '[§][+]', '[§]-', '[§][|]', '[§]V', '[§]î', '[§]h', '[§]w', '[§]k', '[§]v', '[§]d', '[§]i', '[§]C', '[§]l', '[§]y', '[§]m', '[§]D', '[§]r'];
+
+// Colors defined by Kraland @since 1.0.10
+
+var COLOR_TAG_MAP = {
+	yellow: '#f4ac00',
+	orange: '#f77400',
+	fuchsia: '#ed6161',
+	red: '#d50000',
+	brown: '#5e432d',
+	blue: '#2b2be4',
+	lightgreen: '#219c5a',
+	lightblue: '#5577bc',
+	green: '#006f00',
+	darkgray: '#5a5a5a',
+	maroon: 'maroon',
+	purple: 'purple',
+	navy: 'navy',
+	teal: 'teal',
+	olive: 'olive',
+	gray: 'gray',
+	aqua: 'aqua'
+};
+
+var SPAN_TAG_MAP = {
+	b: 'font-weight: bold;',
+	center: 'margin-left:auto; margin-right:auto; display: block; text-align: center;',
+	i: 'font-style: italic;',
+	left: 'display: block; text-align: left;',
+	right: 'display: block; text-align: right;',
+	strike: 'text-decoration: line-through;',
+	u: 'text-decoration: underline;'
+};
+
+function decIntegerToHexString(intValue) {
+	str = (intValue).toString(16);
+	str = str.toUpperCase();
+	if (intValue < 16) {
+		str = '0' + str;
+	}
+	return str;
+}
+
+function replaceAllSmileys(text) {
+	var i;
+	var regexp;
+	var smileyHex = "";
+	var smileyHtml = "";
+
+	for (i = 0; i < smileyRegexps.length; i++) {
+		smileyHex = decIntegerToHexString(i + 1);
+		regexp = new RegExp('\\[(' + smileyRegexps[i] + ')]', 'g');
+		smileyHtml = '<img src="http://img.kraland.org/s/' + smileyHex + '.gif">';
+		text = text.replace(regexp, smileyHtml);
+	}
+
+	return text;
+}
 
 
-var Previews = new Array();
+/*************************************************************************
+ **************************************************************************
+ **************************************************************************
+ **************************************************************************
+ **************************************************************************
+ **************************************************************************
+ *************************************************************************/
+
+/*
+Copyright (C) 2011 Patrick Gillespie, http://patorjk.com/
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+/*
+    Extendible BBCode Parser v1.0.0
+    By Patrick Gillespie (patorjk@gmail.com)
+    Website: http://patorjk.com/
+
+    This module allows you to parse BBCode and to extend to the mark-up language
+    to add in your own tags.
+*/
+
+/*
+	1.0.10 :
+	removing unused bbcode
+	adding kraland bbcode
+	adding call to replaceAllSmileys(text) before escaping '[' and ']' since smileys do not have closing tags.
+*/
+
+var XBBCODE = (function () {
+
+	// -----------------------------------------------------------------------------
+	// Set up private variables
+	// -----------------------------------------------------------------------------
+
+	var me = {},
+		urlPattern = /^(?:https?|file|c):(?:\/{1,3}|\\{1})[-a-zA-Z0-9:;@#%&()~_?\+=\/\\\.]*$/,
+		colorNamePattern = /^(?:aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|green|greenyellow|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white|whitesmoke|yellow|yellowgreen)$/,
+		colorCodePattern = /^#?[a-fA-F0-9]{6}$/,
+		emailPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/,
+		fontFacePattern = /^([a-z][a-z0-9_]+|"[a-z][a-z0-9_\s]+")$/i,
+		tags,
+		tagList,
+		tagsNoParseList = [],
+		bbRegExp,
+		pbbRegExp,
+		pbbRegExp2,
+		openTags,
+		closeTags;
+
+	/* -----------------------------------------------------------------------------
+	 * tags
+	 * This object contains a list of tags that your code will be able to understand.
+	 * Each tag object has the following properties:
+	 *
+	 *   openTag - A function that takes in the tag's parameters (if any) and its
+	 *             contents, and returns what its HTML open tag should be.
+	 *             Example: [color=red]test[/color] would take in "=red" as a
+	 *             parameter input, and "test" as a content input.
+	 *             It should be noted that any BBCode inside of "content" will have
+	 *             been processed by the time it enter the openTag function.
+	 *
+	 *   closeTag - A function that takes in the tag's parameters (if any) and its
+	 *              contents, and returns what its HTML close tag should be.
+	 *
+	 *   displayContent - Defaults to true. If false, the content for the tag will
+	 *                    not be displayed. This is useful for tags like IMG where
+	 *                    its contents are actually a parameter input.
+	 *
+	 *   restrictChildrenTo - A list of BBCode tags which are allowed to be nested
+	 *                        within this BBCode tag. If this property is omitted,
+	 *                        any BBCode tag may be nested within the tag.
+	 *
+	 *   restrictParentsTo - A list of BBCode tags which are allowed to be parents of
+	 *                       this BBCode tag. If this property is omitted, any BBCode
+	 *                       tag may be a parent of the tag.
+	 *
+	 *   noParse - true or false. If true, none of the content WITHIN this tag will be
+	 *             parsed by the XBBCode parser.
+	 *
+	 *
+	 *
+	 * LIMITIONS on adding NEW TAGS:
+	 *  - Tag names should be alphanumeric (including underscores) and all tags should have an opening tag
+	 *    and a closing tag.
+	 *    The [*] tag is an exception because it was already a standard
+	 *    bbcode tag. Technecially tags don't *have* to be alphanumeric, but since
+	 *    regular expressions are used to parse the text, if you use a non-alphanumeric
+	 *    tag names, just make sure the tag name gets escaped properly (if needed).
+	 * --------------------------------------------------------------------------- */
+
+	tags = {
+		/*
+		    This tag does nothing and is here mostly to be used as a classification for
+		    the bbcode input when evaluating parent-child tag relationships
+		*/
+		"bbcode": {
+			openTag: function (params, content) {
+				return '';
+			},
+			closeTag: function (params, content) {
+				return '';
+			}
+		},
+		"img": {
+			openTag: function (params, content) {
+
+				var myUrl = content;
+
+				urlPattern.lastIndex = 0;
+				if (!urlPattern.test(myUrl)) {
+					myUrl = "";
+				}
+
+				return '<img src="' + myUrl + '" />';
+			},
+			closeTag: function (params, content) {
+				return '';
+			},
+			displayContent: false
+		},
+		"mail": {
+			openTag: function (params, content) {
+
+				var myEmail;
+
+				if (!params) {
+					myEmail = content.replace(/<.*?>/g, "");
+				} else {
+					myEmail = params.substr(1);
+				}
+
+				emailPattern.lastIndex = 0;
+				if (!emailPattern.test(myEmail)) {
+					return '<a>';
+				}
+
+				return '<a href="mailto:' + myEmail + '">';
+			},
+			closeTag: function (params, content) {
+				return '</a>';
+			}
+		},
+		"quote": {
+			openTag: function (params, content) {
+				return '<div class="quote">';
+			},
+			closeTag: function (params, content) {
+				return '</div>';
+			}
+		},
+		"spoiler": {
+			openTag: function (params, content) {
+				return '<div class="pre-spoiler>';
+			},
+			closeTag: function (params, content) {
+				return '</div>';
+			}
+		},
+		"url": {
+			openTag: function (params, content) {
+
+				var myUrl;
+
+				if (!params) {
+					myUrl = content.replace(/<.*?>/g, "");
+				} else {
+					myUrl = params.substr(1);
+				}
+
+				urlPattern.lastIndex = 0;
+				if (!urlPattern.test(myUrl)) {
+					myUrl = "#";
+				}
+
+				return '<a href="' + myUrl + '">';
+			},
+			closeTag: function (params, content) {
+				return '</a>';
+			}
+		},
+		/*
+		    The [*] tag is special since the user does not define a closing [/*] tag when writing their bbcode.
+		    Instead this module parses the code and adds the closing [/*] tag in for them. None of the tags you
+		    add will act like this and this tag is an exception to the others.
+		*/
+		"*": {
+			openTag: function (params, content) {
+				return "<li>";
+			},
+			closeTag: function (params, content) {
+				return "</li>";
+			},
+			restrictParentsTo: ["list", "ul", "ol"]
+		}
+	};
+
+	function createSpanTag(param) {
+		return {
+			openTag: function (params, content) {
+				return '<span style="' + param + '">';
+			},
+			closeTag: function (params, content) {
+				return '</span>';
+			}
+		};
+	}
+
+	function createColorTag(param) {
+		return createSpanTag('color:' + param);
+	}
+
+	for (var colorHTML in COLOR_TAG_MAP) {
+		tags[colorHTML] = createColorTag(COLOR_TAG_MAP[colorHTML]);
+	};
+
+	for (var spanHTML in SPAN_TAG_MAP) {
+		tags[spanHTML] = createSpanTag(SPAN_TAG_MAP[spanHTML]);
+	};
+
+
+	// create tag list and lookup fields
+	function initTags() {
+		tagList = [];
+		var prop,
+			ii,
+			len;
+		for (prop in tags) {
+			if (tags.hasOwnProperty(prop)) {
+				if (prop === "*") {
+					tagList.push("\\" + prop);
+				} else {
+					tagList.push(prop);
+					if (tags[prop].noParse) {
+						tagsNoParseList.push(prop);
+					}
+				}
+
+				tags[prop].validChildLookup = {};
+				tags[prop].validParentLookup = {};
+				tags[prop].restrictParentsTo = tags[prop].restrictParentsTo || [];
+				tags[prop].restrictChildrenTo = tags[prop].restrictChildrenTo || [];
+
+				len = tags[prop].restrictChildrenTo.length;
+				for (ii = 0; ii < len; ii++) {
+					tags[prop].validChildLookup[tags[prop].restrictChildrenTo[ii]] = true;
+				}
+				len = tags[prop].restrictParentsTo.length;
+				for (ii = 0; ii < len; ii++) {
+					tags[prop].validParentLookup[tags[prop].restrictParentsTo[ii]] = true;
+				}
+			}
+		}
+
+		bbRegExp = new RegExp("<bbcl=([0-9]+) (" + tagList.join("|") + ")([ =][^>]*?)?>((?:.|[\\r\\n])*?)<bbcl=\\1 /\\2>", "gi");
+		pbbRegExp = new RegExp("\\[(" + tagList.join("|") + ")([ =][^\\]]*?)?\\]([^\\[]*?)\\[/\\1\\]", "gi");
+		pbbRegExp2 = new RegExp("\\[(" + tagsNoParseList.join("|") + ")([ =][^\\]]*?)?\\]([\\s\\S]*?)\\[/\\1\\]", "gi");
+
+		// create the regex for escaping ['s that aren't apart of tags
+		(function () {
+			var closeTagList = [];
+			for (var ii = 0; ii < tagList.length; ii++) {
+				if (tagList[ii] !== "\\*") { // the * tag doesn't have an offical closing tag
+					closeTagList.push("/" + tagList[ii]);
+				}
+			}
+
+			openTags = new RegExp("(\\[)((?:" + tagList.join("|") + ")(?:[ =][^\\]]*?)?)(\\])", "gi");
+			closeTags = new RegExp("(\\[)(" + closeTagList.join("|") + ")(\\])", "gi");
+		})();
+
+	};
+	initTags();
+
+	// -----------------------------------------------------------------------------
+	// private functions
+	// -----------------------------------------------------------------------------
+
+	function checkParentChildRestrictions(parentTag, bbcode, bbcodeLevel, tagName, tagParams, tagContents, errQueue) {
+
+		errQueue = errQueue || [];
+		bbcodeLevel++;
+
+		// get a list of all of the child tags to this tag
+		var reTagNames = new RegExp("(<bbcl=" + bbcodeLevel + " )(" + tagList.join("|") + ")([ =>])", "gi"),
+			reTagNamesParts = new RegExp("(<bbcl=" + bbcodeLevel + " )(" + tagList.join("|") + ")([ =>])", "i"),
+			matchingTags = tagContents.match(reTagNames) || [],
+			cInfo,
+			errStr,
+			ii,
+			childTag,
+			pInfo = tags[parentTag] || {};
+
+		reTagNames.lastIndex = 0;
+
+		if (!matchingTags) {
+			tagContents = "";
+		}
+
+		for (ii = 0; ii < matchingTags.length; ii++) {
+			reTagNamesParts.lastIndex = 0;
+			childTag = (matchingTags[ii].match(reTagNamesParts))[2].toLowerCase();
+
+			if (pInfo && pInfo.restrictChildrenTo && pInfo.restrictChildrenTo.length > 0) {
+				if (!pInfo.validChildLookup[childTag]) {
+					errStr = "The tag \"" + childTag + "\" is not allowed as a child of the tag \"" + parentTag + "\".";
+					errQueue.push(errStr);
+				}
+			}
+			cInfo = tags[childTag] || {};
+			if (cInfo.restrictParentsTo.length > 0) {
+				if (!cInfo.validParentLookup[parentTag]) {
+					errStr = "The tag \"" + parentTag + "\" is not allowed as a parent of the tag \"" + childTag + "\".";
+					errQueue.push(errStr);
+				}
+			}
+
+		}
+
+		tagContents = tagContents.replace(bbRegExp, function (matchStr, bbcodeLevel, tagName, tagParams, tagContents) {
+			errQueue = checkParentChildRestrictions(tagName.toLowerCase(), matchStr, bbcodeLevel, tagName, tagParams, tagContents, errQueue);
+			return matchStr;
+		});
+		return errQueue;
+	}
+
+	/*
+	    This function updates or adds a piece of metadata to each tag called "bbcl" which
+	    indicates how deeply nested a particular tag was in the bbcode. This property is removed
+	    from the HTML code tags at the end of the processing.
+	*/
+	function updateTagDepths(tagContents) {
+		tagContents = tagContents.replace(/\<([^\>][^\>]*?)\>/gi, function (matchStr, subMatchStr) {
+			var bbCodeLevel = subMatchStr.match(/^bbcl=([0-9]+) /);
+			if (bbCodeLevel === null) {
+				return "<bbcl=0 " + subMatchStr + ">";
+			} else {
+				return "<" + subMatchStr.replace(/^(bbcl=)([0-9]+)/, function (matchStr, m1, m2) {
+					return m1 + (parseInt(m2, 10) + 1);
+				}) + ">";
+			}
+		});
+		return tagContents;
+	}
+
+	/*
+	    This function removes the metadata added by the updateTagDepths function
+	*/
+	function unprocess(tagContent) {
+		return tagContent.replace(/<bbcl=[0-9]+ \/\*>/gi, "").replace(/<bbcl=[0-9]+ /gi, "&#91;").replace(/>/gi, "&#93;");
+	}
+
+	var replaceFunct = function (matchStr, bbcodeLevel, tagName, tagParams, tagContents) {
+
+		tagName = tagName.toLowerCase();
+
+		var processedContent = tags[tagName].noParse ? unprocess(tagContents) : tagContents.replace(bbRegExp, replaceFunct),
+			openTag = tags[tagName].openTag(tagParams, processedContent),
+			closeTag = tags[tagName].closeTag(tagParams, processedContent);
+
+		if (tags[tagName].displayContent === false) {
+			processedContent = "";
+		}
+
+		return openTag + processedContent + closeTag;
+	};
+
+	function parse(config) {
+		var output = config.text;
+		output = output.replace(bbRegExp, replaceFunct);
+		return output;
+	}
+
+	/*
+	    The star tag [*] is special in that it does not use a closing tag. Since this parser requires that tags to have a closing
+	    tag, we must pre-process the input and add in closing tags [/*] for the star tag.
+	    We have a little levaridge in that we know the text we're processing wont contain the <> characters (they have been
+	    changed into their HTML entity form to prevent XSS and code injection), so we can use those characters as markers to
+	    help us define boundaries and figure out where to place the [/*] tags.
+	*/
+	function fixStarTag(text) {
+		text = text.replace(/\[(?!\*[ =\]]|list([ =][^\]]*)?\]|\/list[\]])/ig, "<");
+		text = text.replace(/\[(?=list([ =][^\]]*)?\]|\/list[\]])/ig, ">");
+
+		while (text !== (text = text.replace(/>list([ =][^\]]*)?\]([^>]*?)(>\/list])/gi, function (matchStr, contents, endTag) {
+
+				var innerListTxt = matchStr;
+				while (innerListTxt !== (innerListTxt = innerListTxt.replace(/\[\*\]([^\[]*?)(\[\*\]|>\/list])/i, function (matchStr, contents, endTag) {
+						if (endTag.toLowerCase() === ">/list]") {
+							endTag = "</*]</list]";
+						} else {
+							endTag = "</*][*]";
+						}
+						return "<*]" + contents + endTag;
+					})));
+
+				innerListTxt = innerListTxt.replace(/>/g, "<");
+				return innerListTxt;
+			})));
+
+		// add ['s for our tags back in
+		text = text.replace(/</g, "[");
+		return text;
+	}
+
+	function addBbcodeLevels(text) {
+		while (text !== (text = text.replace(pbbRegExp, function (matchStr, tagName, tagParams, tagContents) {
+				matchStr = matchStr.replace(/\[/g, "<");
+				matchStr = matchStr.replace(/\]/g, ">");
+				return updateTagDepths(matchStr);
+			})));
+		return text;
+	}
+
+	// -----------------------------------------------------------------------------
+	// public functions
+	// -----------------------------------------------------------------------------
+
+	// API, Expose all available tags
+	me.tags = function () {
+		return tags;
+	}
+
+	// API
+	me.addTags = function (newtags) {
+		var tag;
+		for (tag in newtags) {
+			tags[tag] = newtags[tag];
+		}
+		initTags();
+	}
+
+	me.process = function (config) {
+
+		var ret = {
+				html: "",
+				error: false
+			},
+			errQueue = [];
+
+		config.text = config.text.replace(/</g, "&lt;"); // escape HTML tag brackets
+		config.text = config.text.replace(/>/g, "&gt;"); // escape HTML tag brackets
+
+		config.text = config.text.replace(openTags, function (matchStr, openB, contents, closeB) {
+			return "<" + contents + ">";
+		});
+		config.text = config.text.replace(closeTags, function (matchStr, openB, contents, closeB) {
+			return "<" + contents + ">";
+		});
+
+		config.text = config.text.replace(/\[/g, "&#91;"); // escape ['s that aren't apart of tags
+		config.text = config.text.replace(/\]/g, "&#93;"); // escape ['s that aren't apart of tags
+		config.text = config.text.replace(/</g, "["); // escape ['s that aren't apart of tags
+		config.text = config.text.replace(/>/g, "]"); // escape ['s that aren't apart of tags	
+
+		// process tags that don't have their content parsed
+		while (config.text !== (config.text = config.text.replace(pbbRegExp2, function (matchStr, tagName, tagParams, tagContents) {
+				tagContents = tagContents.replace(/\[/g, "&#91;");
+				tagContents = tagContents.replace(/\]/g, "&#93;");
+				tagParams = tagParams || "";
+				tagContents = tagContents || "";
+				return "[" + tagName + tagParams + "]" + tagContents + "[/" + tagName + "]";
+			})));
+
+		//config.text = fixStarTag(config.text); @removed 1.0.10
+		config.text = addBbcodeLevels(config.text); // add in level metadata
+
+		errQueue = checkParentChildRestrictions("bbcode", config.text, -1, "", "", config.text);
+
+		ret.html = parse(config);;
+
+		if (ret.html.indexOf("[") !== -1 || ret.html.indexOf("]") !== -1) {
+			errQueue.push("Some tags appear to be misaligned.");
+		}
+
+		if (config.removeMisalignedTags) {
+			ret.html = ret.html.replace(/\[.*?\]/g, "");
+		}
+		if (config.addInLineBreaks) {
+			ret.html = '<div style="white-space:pre-wrap;">' + ret.html + '</div>';
+		}
+
+		ret.html = ret.html.replace(new RegExp("&#91;", 'g'), "["); // put ['s back in
+		ret.html = ret.html.replace(new RegExp("&#93;", 'g'), "]"); // put ['s back in
+
+		ret.error = errQueue.length !== 0;
+		ret.errorQueue = errQueue;
+
+		ret.html = replaceAllSmileys(ret.html); // @since 1.0.10
+
+		return ret;
+	};
+
+	return me;
+})();
+
+
+
+
+/*************************************************************************
+ **************************************************************************
+ **************************************************************************
+ **************************************************************************
+ **************************************************************************
+ **************************************************************************
+ *************************************************************************/
+
+
+
+var Previews = [];
 var n_prevs = 0;
 
 /****************************************
-*		SECURED FUNCTIONS				*
-*****************************************/
+ *		SECURED FUNCTIONS				*
+ *****************************************/
 
 // Returns 0 or 1 whether the input is checked or not
 // @param area the current textArea
-function isItalic(textArea)
-{
+function isItalic(textArea) {
 	var italic = 0;
-	try
-	{
-	//      area p          td         div           input
-	textArea.parentNode.parentNode.childNodes[3].childNodes[0].checked == true ? 1 : 0;
-	}
-	// NULLPOINTER
-	catch(err)
-	{
+	try {
+		//      area p          td         div           input
+		italic = textArea.parentNode.parentNode.childNodes[3].childNodes[0].checked === true ? 1 : 0;
+	} catch (err) {
+		// NULLPOINTER
 	}
 	return italic;
 }
 
-function isMinichatLog()
-{
-	return document.title == "Kraland Interactif - Communauté - Mini-Chat";
+function isMinichatLog() {
+	return document.title === "Kraland Interactif - Communauté - Mini-Chat";
 }
 
 // Returns true if we are in the popup window
-function isPopupFrame()
-{
-	return document.title == "Kraland - Passer un Ordre";
+function isPopupFrame() {
+	return document.title === "Kraland - Passer un Ordre";
 }
 
 // Returns true if we are in the kramail window or in the forum post window
-function isMainFrame()
-{
+function isMainFrame() {
 	var forms = document.getElementsByTagName('form');
-	for (var i=0; i<forms.length; i++)
-	{
-		if (forms[i].name == "post_msg") return 1;
+	var i;
+	for (i = 0; i < forms.length; i++) {
+		if (forms[i].name === "post_msg") {
+			return 1;
+		}
 	}
 	return 0;
 }
 
-// Returns true if we are in the help popup's previsualisation
-function isPrevisualisationWindow()
-{
-	if( document.title != "Kraland Interactif - Aide" ) return false;
-    return (document.getElementsByTagName('textarea')[0].name == "message");
+function convert(text) {
+	return XBBCODE.process({
+		text: text,
+		removeMisalignedTags: false,
+		addInLineBreaks: false
+	}).html;
 }
 
-// Callback function
-// @param evt a click event
-function mouseUp(evt)
-{
-	setTimeout(key_up, 50, evt);
-}
-
-// Sets the width and height of every textarea in the popup window to 100% and 400px.
-function extendTextArea()
-{
-	var areas = document.getElementsByTagName("textarea");
-	for (var i=0; i<areas.length; i++)
-	{
-		areas[i].style.width = "450px";
-		areas[i].style.height = "400px";
-	}
-}
-
-// Called when the smiley is clicked and display the next set of smileys
-// @param areaId the current textArea's id
-function displaySmileysArea(areaId)
-{
-	tab1 = document.getElementById(areaId+"smile0");
-	tab2 = document.getElementById(areaId+"smile1");
-	tab3 = document.getElementById(areaId+"smile2");
-	tab4 = document.getElementById(areaId+"smile3");
-	tab5 = document.getElementById(areaId+"smile4");
-
-	if (tab1.style.display == "block")
-	{
-		tab1.style.display = "none";
-		tab2.style.display = "block";
-		tab2.style.height = "30px";
-	}
-	else if (tab2.style.display == "block")
-	{
-		tab2.style.display = "none";
-		tab3.style.display = "block";
-		tab3.style.height = "30px";
-	}
-	else if (tab3.style.display == "block")
-	{
-		tab3.style.display = "none";
-		tab4.style.display = "block";
-		tab4.style.height = "30px";
-	}
-	else if (tab4.style.display == "block")
-	{
-		tab4.style.display = "none";
-		tab5.style.display = "block";
-		tab5.style.height = "30px";
-	}
-	else if (tab5.style.display == "block")
-	{
-		tab5.style.display = "none";
-		tab1.style.height = "30px";
-	}
-	else tab1.style.display = "block";
-}
-
-// Returns a smiley's string
-// @param index the smiley's position in the array
-function getSmiley(index)
-{
-    var tab = [':)', ';)', '8)', ':]', ':D', ':p', ':6', '3)', ':,', ':(', ':[', ')[', '!(', '^]', 'x(', '8(', 'o)', '%(', ':o', ':|', ')|', ';(', ';[', ':f', ';o', ';|', '[(', '0)', ':B', ':=', '8]', '|)', 'O)', '8î', '8Î', 'j)', 'p)', '^)', ')f', ':î', ':Î', '%)', '8O', 'OX', ')%', 'oX', ':.', 'o(', 'hp', ':n', ':P', ':x', '8p', 'j|', 'kD', 'k]', ';p', ':l', ':+', ':-', 'VV', '%%', 'Q)', 'fr', 'en', 'de', 'es', 'it', 'nl', 'ca', 'sw', 'jp', '*t', '*j', '*o', '*r', '*v', '*c', '*b', '*m', '*n', '=o', '=n', '=S', 'ty', 'mt', 'so', 'iz', 'jo', 'tk', 'pk', 'ka', 'ke', '3i', '+)', 'st', '§c', '§o', '§g', 'co', '§p', '=)', '=!', '=k', '=y' ];
-    return tab[index];
-}
-
-// Creates a html table with 21 smileys in it on the top of a textarea
-// @param tableNum the table's number
-// @param areaId the current textArea's id
-function createSmileysTable(tableNum, areaId)
-{
-	var SMILEY_COUNT = 21;
-	var currentSmiley = (SMILEY_COUNT * tableNum);
-
-	// Converts numbers in hexadecimal string
-	function base10ToBase16 ()
-	{
-		// Here is the conversion
-		var str = (++currentSmiley).toString(16);
-		str = str.toUpperCase();
-		if (currentSmiley < 16) str = '0' + str;
-		return str;
-	}
-
-	var tr = document.createElement('tr');
-		for (var i=0; i < SMILEY_COUNT; i++)
-		{        
-			var td = document.createElement('td');
-			var a = document.createElement('a');
-			a.href = 'javascript:add2tag(' + "'" + getSmiley((SMILEY_COUNT*tableNum)+i) + "'" + ', "'+ areaId +'","0")';
-			a.areaId = areaId.substr("area".length, areaId.length);
-
-			var image = document.createElement('img');
-			image.src = 'http://www.kramages.org/s/' + base10ToBase16() +'.gif'
-			a.appendChild(image);
-			td.appendChild(a);
-			tr.appendChild(td);
-		}
-	return tr;
-}
-
-// Creates and display the previsualisation area
-// @param textarea the textarea to be previsualised
-function createPreview(textarea)
-{
-    var id = n_prevs++;
-
-    textarea.id = "area" + id;
-    Previews[textarea.id] = textarea;
-
-    var container = textarea.parentNode;
-
-	// Add the keyup event listener to the textarea
-    if (OPTION_FREQUENCE_PREVISUALISATION == 1)
-	{
-		textarea.addEventListener('keyup', key_up, false );
-	}
-
-    var prev = document.createElement('div');
-    prev.id = "preview" + id;
-    prev.className = "bigcadre";
-    prev.style.marginLeft = "0";
-    prev.style.width = "97%";
-    prev.style.padding = "5px";
-    prev.innerHTML = "";
-    
-	// Add the mouseover event listener to the textarea and the previsualisation area
-    if (OPTION_FREQUENCE_PREVISUALISATION == 0)
-    {
-        prev.addEventListener('mouseover', key_up, false );
-        textarea.addEventListener('mousemove', key_up, false );
-    }
-
-    var footer = document.createElement('div');
-    footer.id = "footer" + id;
-    
-	// This one is used as a container
-    var paragraph = document.createElement('p');
-    textarea.parentNode.insertBefore(paragraph, textarea);
-    paragraph.parentNode.removeChild(textarea);
-    paragraph.appendChild(textarea);
-    paragraph.appendChild(prev);
-    paragraph.appendChild(footer);
-}
-
-// Removes every stupid '>' that cut the post's sentences is pieces.
-// @param textarea the textarea to be cleaned
-function removeBadQuotes(textarea)
-{
-    textarea.value = textarea.value.replace(/ \n(?:> )+(?=[\wéàçèäâêë\[])/g, " ");
-    textarea.value = textarea.value.replace(/  /g," ");
-}
 
 // Update the previsualisation area and display the character's counter when the keyup event is triggered
 // @param event the keyup event
-function key_up (event)
-{
-	var area;
+function key_up(event) {
+	var area = null;
 
 	// If the event was triggered by the user
-	if (event != null)
-	{
+	if (event !== null) {
 		area = Previews[event.target.id];
-	}
-	// If the script made a call to this function by itself
-	else
-	{
+	} else {
+		// If the script made a call to this function by itself
 		area = document.getElementsByClassName('forum-message')[0].getElementsByTagName('textarea')[0];
-		if (area == null) return;
 	}
+
+	if (area === null || area === undefined) {
+		return;
+	}
+
 	var doc = document;
 
-	// Ok maybe we don't have a textarea everytime, pretty sure we are in the kraland's previsualisation tool
-	if (area == null)
-	{	
-		doc = parent.document;
-		var post = doc.getElementsByClassName('forum-message')[0];
-
-		if (post == null && !is_tool_frame())
-		{
-			zarea = event.target.parentNode.parentNode.getElementsByTagName('textarea')[0];
-			if (area == null) area = document.getElementById("area"+event.target.parentNode.id);
-			if (area == null) alert("putain de bordel de merde"); // <----- Rico replies : OH SHIT WE'RE SCREWED :D ! IT'S A TRAP !
-		}
-		else
-		{
-			if (post == null)
-			{
-				doc = opener.document;
-				var ln = document.getElementsByTagName('a')[0];
-				var orderId = ln.href.substr(ln.href.lastIndexOf('=')+1, ln.href.length);
-				var area = doc.getElementsByName('order' + orderId)[0].getElementsByTagName('textarea')[0];
-			}
-			else
-			{
-				area = post.getElementsByTagName('textarea')[0];
-			}
-		}
-	}
-
 	// Simple check for the italic checkbox, only in the popup window
-	if (isItalic(area))
-	{
-		var str = convert('[i]'+area.value+'[/i]');
-	}
-	else
-	{
+	if (isItalic(area)) {
+		var str = convert('[i]' + area.value + '[/i]');
+	} else {
 		var str = convert(area.value);
 	}
 
@@ -316,10 +714,9 @@ function key_up (event)
 	// Rico is tired ^
 	var endl = /(\r\n|\n\r|\r|\n)/g;
 	var count = 0;
-	prev.innerHTML = str.replace( endl, function(match, g1, g2, position, input)
-	{
+	prev.innerHTML = str.replace(endl, function (match, g1, g2, position, input) {
 		count++;
-		return "<br/>"; 
+		return "<br/>";
 	});
 
 	// This one is not used anymore, Kraland is ok with '<' and '\' now
@@ -327,47 +724,178 @@ function key_up (event)
 	//if (area.value.search(new RegExp(/(\\|<\S)/)) != -1) alert_carac = "<p align='right'><font color='red'><b>Aaaaaaaaaaaahhhh un < ou un \ ! Vade retro satanas !</b></font></p>";
 
 	var nbCarac = area.value.match(new RegExp(/\"/g));
-	if (nbCarac != null) count=count+5*nbCarac.length;
+	if (nbCarac != null) count = count + 5 * nbCarac.length;
 
 	nbCarac = area.value.match(new RegExp(/(\>|\<)/g));
-	if (nbCarac != null) count=count+3*nbCarac.length;
+	if (nbCarac != null) count = count + 3 * nbCarac.length;
 
 	foot.innerHTML = area.value.length + count + " caractères"; // Not used anymore : + alert_carac;
 }
 
+// Callback function
+// @param evt a click event
+function mouseUp(evt) {
+	setTimeout(key_up, 50, evt);
+}
+
+// Sets the width and height of every textarea in the popup window to 100% and 400px.
+function extendTextArea() {
+	var areas = document.getElementsByTagName("textarea");
+	for (var i = 0; i < areas.length; i++) {
+		areas[i].style.width = "450px";
+		areas[i].style.height = "400px";
+	}
+}
+
+// Called when the smiley is clicked and display the next set of smileys
+// @param areaId the current textArea's id
+function displaySmileysArea(areaId) {
+	var tab1 = document.getElementById(areaId + "smile0");
+	var tab2 = document.getElementById(areaId + "smile1");
+	var tab3 = document.getElementById(areaId + "smile2");
+	var tab4 = document.getElementById(areaId + "smile3");
+	var tab5 = document.getElementById(areaId + "smile4");
+	var tab6 = document.getElementById(areaId + "smile5");
+
+	if (tab1.style.display === "block") {
+		tab1.style.display = "none";
+		tab2.style.display = "block";
+		tab2.style.height = "30px";
+	} else if (tab2.style.display === "block") {
+		tab2.style.display = "none";
+		tab3.style.display = "block";
+		tab3.style.height = "30px";
+	} else if (tab3.style.display === "block") {
+		tab3.style.display = "none";
+		tab4.style.display = "block";
+		tab4.style.height = "30px";
+	} else if (tab4.style.display === "block") {
+		tab4.style.display = "none";
+		tab5.style.display = "block";
+		tab5.style.height = "30px";
+	} else if (tab5.style.display == "block") {
+		tab5.style.display = "none";
+		tab6.style.display = "block";
+		tab6.style.height = "30px";
+	} else if (tab6.style.display == "block") {
+		tab6.style.display = "none";
+		tab1.style.height = "30px";
+	} else tab1.style.display = "block";
+}
+
+// Returns a smiley's string
+// @param index the smiley's position in the array
+function getSmiley(index) {
+	var tab = [':)', ';)', '8)', ':]', ':D', ':p', ':6', '3)', ':,', ':(', ':[', ')[', '!(', '^]', 'x(', '8(', 'o)', '%(', ':o', ':|', ')|', ';(', ';[', ':f', ';o', ';|', '[(', '0)', ':B', ':=', '8]', '|)', 'O)', '8î', '8Î', 'j)', 'p)', '^)', ')f', ':î', ':Î', '%)', '8O', 'OX', ')%', 'oX', ':.', 'o(', 'hp', ':n', ':P', ':x', '8p', 'j|', 'kD', 'k]', ';p', ':l', ':+', ':-', 'VV', '%%', 'Q)', 'fr', 'en', 'de', 'es', 'it', 'nl', 'ca', 'sw', 'jp', '*t', '*j', '*o', '*r', '*v', '*c', '*b', '*m', '*n', '=o', '=n', '=S', 'ty', 'mt', 'so', 'iz', 'jo', 'tk', 'pk', 'ka', 'ke', '3i', '+)', 'st', '§c', '§o', '§g', 'co', '§p', '=)', '=!', '=k', '=y', '§x', '§b', '§3', '§;', '§+', '§-', '§|', '§V', '§î', '§h', '§w', '§k', '§v', '§d', '§i', '§C', '§l', '§y', '§m', '§D', '§r'];
+	return tab[index];
+}
+
+// Creates a html table with 21 smileys in it on the top of a textarea
+// @param tableNum the table's number
+// @param areaId the current textArea's id
+function createSmileysTable(tableNum, areaId) {
+	var SMILEY_COUNT = 21;
+	var currentSmiley = (SMILEY_COUNT * tableNum);
+
+	// Converts numbers in hexadecimal string
+	function base10ToBase16() {
+		// Here is the conversion
+		var str = (++currentSmiley).toString(16);
+		str = str.toUpperCase();
+		if (currentSmiley < 16) str = '0' + str;
+		return str;
+	}
+
+	var tr = document.createElement('tr');
+	for (var i = 0; i < SMILEY_COUNT; i++) {
+		var td = document.createElement('td');
+		var a = document.createElement('a');
+		a.href = 'javascript:add2tag(' + "'" + getSmiley((SMILEY_COUNT * tableNum) + i) + "'" + ', "' + areaId + '","0")';
+		a.areaId = areaId.substr("area".length, areaId.length);
+
+		var image = document.createElement('img');
+		image.src = 'http://img.kraland.org/s/' + base10ToBase16() + '.gif'
+		a.appendChild(image);
+		td.appendChild(a);
+		tr.appendChild(td);
+	}
+	return tr;
+}
+
+// Creates and display the previsualisation area
+// @param textarea the textarea to be previsualised
+function createPreview(textarea) {
+	var id = n_prevs++;
+
+	textarea.id = "area" + id;
+	Previews[textarea.id] = textarea;
+
+	var container = textarea.parentNode;
+
+	// Add the keyup event listener to the textarea
+	if (OPTION_FREQUENCE_PREVISUALISATION == 1) {
+		textarea.addEventListener('keyup', key_up, false);
+	}
+
+	var prev = document.createElement('div');
+	prev.id = "preview" + id;
+	prev.className = "bigcadre";
+	prev.style.marginLeft = "0";
+	prev.style.width = "97%";
+	prev.style.padding = "5px";
+	prev.innerHTML = "";
+
+	// Add the mouseover event listener to the textarea and the previsualisation area
+	if (OPTION_FREQUENCE_PREVISUALISATION == 0) {
+		prev.addEventListener('mouseover', key_up, false);
+		textarea.addEventListener('mousemove', key_up, false);
+	}
+
+	var footer = document.createElement('div');
+	footer.id = "footer" + id;
+
+	// This one is used as a container
+	var paragraph = document.createElement('p');
+	textarea.parentNode.insertBefore(paragraph, textarea);
+	paragraph.parentNode.removeChild(textarea);
+	paragraph.appendChild(textarea);
+	paragraph.appendChild(prev);
+	paragraph.appendChild(footer);
+}
+
+// Removes every stupid '>' that cut the post's sentences is pieces.
+// @param textarea the textarea to be cleaned
+function removeBadQuotes(textarea) {
+	textarea.value = textarea.value.replace(/ \n(?:> )+(?=[\wéàçèäâêë\[])/g, " ");
+	textarea.value = textarea.value.replace(/  /g, " ");
+}
+
+
+
 // The main function
-function main()
-{
-	if (isMainFrame())
-	{
-		if (OPTION_REFORMATER_TEXTE == 1)
-		{
+function main() {
+	if (isMainFrame()) {
+		if (OPTION_REFORMATER_TEXTE == 1) {
 			removeBadQuotes(document.getElementsByClassName('forum-message')[0].getElementsByTagName('textarea')[0]);
 		}
 		// Tools, smileys etc...
 		var left_toolbar = document.getElementsByClassName('forum-cartouche');
 		// This add some rare characters, could be useful.
-		if (left_toolbar.length != 0)
-		{
+		if (left_toolbar.length != 0) {
 			var help_text = document.createElement('p');
 			help_text.innerHTML = "— « » À É";
 			left_toolbar[0].appendChild(help_text);
 		}
 		createPreview(document.getElementsByClassName('forum-message')[0].getElementsByTagName('textarea')[0]);
 		key_up();
-	}
-	else if (isPopupFrame())
-	{
+	} else if (isPopupFrame()) {
 		extendTextArea();
 		var areas = document.getElementsByTagName('textarea');
-		for (var i=0; i<areas.length; i++)
-		{
+		for (var i = 0; i < areas.length; i++) {
 			createPreview(areas[i]);
 			add_toolbar(areas[i]);
 		}
-	}
-	else if(isMinichatLog())
-	{
+	} else if (isMinichatLog()) {
 		// the div where the text area is located
 		var divMinHeightBottom = document.getElementById('div-min-height-bottom');
 		divMinHeightBottom.style.height = 'auto';
@@ -384,23 +912,20 @@ function main()
 				};*/
 
 		var formMinichat = document.createElement('form');
-		formMinichat.setAttribute('action','http://www.kraland.org/main.php?p=6_6');
+		formMinichat.setAttribute('action', 'http://www.kraland.org/main.php?p=6_6');
 		formMinichat.appendChild(textAreaAsNew);
-		formMinichat.addEventListener('submit', function(evt)
-		{
+		formMinichat.addEventListener('submit', function (evt) {
 			evt.preventDefault();
 			var textAreaByName = document.getElementsByName('minichatInput')[0];
 
-			if( textAreaByName.value === '' )
-			{
+			if (textAreaByName.value === '') {
 				return;
 			}
 
 			var minichatGetRequest = 'http://www.kraland.org/minichat.php?message=' + encodeURIComponent(textAreaByName.value);
 			var xhr = new XMLHttpRequest();
-			xhr.onreadystatechange = function() {
-				if( xhr.readyState==4 && xhr.status==200 )
-				{
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState == 4 && xhr.status == 200) {
 					window.location = 'http://www.kraland.org/main.php?p=6_6';
 				}
 			};
@@ -425,393 +950,177 @@ function main()
 
 		// getting the new textArea
 		var textAreaByName = document.getElementsByName('minichatInput')[0];
-		
+
 		createPreview(textAreaByName);
 		add_toolbar(textAreaByName);
 
 		textAreaByName.focus();
 	}
-	// Removed because the minichat is bugged.
-	/*else if (isPrevisualisationWindow)
-	{   
-		var nodes = document.getElementsByTagName('textarea');
-		for (var i=0; i<nodes.length; i++)
-		{
-			nodes[i].addEventListener('mouseup', mouseUp, true );
-			createPreview(nodes[i]);
-			add_toolbar(nodes[i]);
-		}
-	}*/
 }
 
 /****************************************
-*		END SECURED FUNCTIONS			*
-*****************************************/
+ *		END SECURED FUNCTIONS			*
+ *****************************************/
 
-function add_toolbar (area) {
-    var toolbar = document.createElement('span');
+function add_toolbar(area) {
+	var toolbar = document.createElement('span');
 
-    document.body.appendChild(document.createElement('script')).innerHTML = "var tagopen;\n" + add2tag ;
-    document.body.appendChild(document.createElement('script')).innerHTML = "var tagopen;\n" + displaySmileysArea ;
+	document.body.appendChild(document.createElement('script')).innerHTML = "var tagopen;\n" + add2tag;
+	document.body.appendChild(document.createElement('script')).innerHTML = "var tagopen;\n" + displaySmileysArea;
 
-    var c = new Array();
-    c[0] = new Array('b', b_str);
-    c[1] = new Array('i', i_str);
-    c[2] = new Array('u', u_str);
-    c[3] = new Array('strike', s_str);
-    c[4] = new Array('left', left_str);
-    c[5] = new Array('center', center_str);
-    c[6] = new Array('right', right_str);
-    c[7] = new Array('quote', quote_str);
-    c[8] = new Array('img', img_str);
-    c[9] = new Array('url', url_str);
-    c[10] = new Array('mail', mail_str);
-    c[11] = new Array("yellow", "#f4ac00");
-    c[12] = new Array("orange", "#f77400");
-    c[13] = new Array("fuchsia", "#ed6161");
-    c[14] = new Array("red", "#d50000");
-    c[15] = new Array("maroon", "#7b0000");
-    c[16] = new Array("brown", "#5e432d");
-    c[17] = new Array("purple", "purple");
-    c[18] = new Array("navy", "#00007b");
-    c[19] = new Array("smiley", "smiley");
-    c[20] = new Array("blue", "#2b2be4");
-    c[21] = new Array("lightblue", "#5577bc");
-    c[22] = new Array("teal", "#007b7b");
-    c[23] = new Array("lightgreen", "#219c5a");
-    c[24] = new Array("green", "#006f00");
-    c[25] = new Array("olive", "#7b7b00");
-    c[26] = new Array("gray", "#7b7b7b");
-    c[27] = new Array("darkgray", "#5a5a5a");
-    
+	var c = new Array();
+	c[0] = new Array('b', b_str);
+	c[1] = new Array('i', i_str);
+	c[2] = new Array('u', u_str);
+	c[3] = new Array('strike', s_str);
+	c[4] = new Array('left', left_str);
+	c[5] = new Array('center', center_str);
+	c[6] = new Array('right', right_str);
+	c[7] = new Array('quote', quote_str);
+	c[8] = new Array('img', img_str);
+	c[9] = new Array('url', url_str);
+	c[10] = new Array('mail', mail_str);
+	c[11] = new Array("yellow", "#f4ac00");
+	c[12] = new Array("orange", "#f77400");
+	c[13] = new Array("fuchsia", "#ed6161");
+	c[14] = new Array("red", "#d50000");
+	c[15] = new Array("maroon", "#7b0000");
+	c[16] = new Array("brown", "#5e432d");
+	c[17] = new Array("purple", "purple");
+	c[18] = new Array("navy", "#00007b");
+	c[19] = new Array("smiley", "smiley");
+	c[20] = new Array("blue", "#2b2be4");
+	c[21] = new Array("lightblue", "#5577bc");
+	c[22] = new Array("teal", "#007b7b");
+	c[23] = new Array("lightgreen", "#219c5a");
+	c[24] = new Array("green", "#006f00");
+	c[25] = new Array("olive", "#7b7b00");
+	c[26] = new Array("gray", "#7b7b7b");
+	c[27] = new Array("darkgray", "#5a5a5a");
 
-    var table = document.createElement('table');
-    table.style.display = "inline";
-    table.style.border = "0";
-    table.cellSpacing = 1;
-    table.cellPadding = 0;
 
-    var tr = document.createElement('tr');
-    
-    for (var i=0; i<c.length; i++)
-    {
-        if (i == 20)
-        {
-            table.appendChild(tr);
-            tr = document.createElement('tr');
-        }
+	var table = document.createElement('table');
+	table.style.display = "inline";
+	table.style.border = "0";
+	table.cellSpacing = 1;
+	table.cellPadding = 0;
 
-        var td = document.createElement('td');
-        td.style.border = "1px solid #999999";
-        var is_image;
-        if (i < 11)
-        {
-            is_image = true;
-            td.width = "18px";
-            td.height = "17px";
-            td.rowSpan = "2";
-        }
-        else
-        {
-            is_image = false;
-            td.width = "8px";
-            td.height = "8px";
-        }
-        if (i != 19) add_tool(td, c[i][1], c[i][0], area.id, is_image);
-        else if (!smiley) continue;
-        else
-        {
-            var a = document.createElement('a');
-            a.href = 'javascript:displaySmileysArea("' + area.id +'")';
-            a.id = area.id.substr("area".length, area.id.length);
-        
-            var image = document.createElement('img');
-            image.src = 'http://www.kramages.org/s/' + "01" +'.gif'
-            td.style.border = "1px solid #999999";
-            td.rowSpan =2;
-            a.appendChild(image);
-            td.appendChild(a);
-        }
-        tr.appendChild(td);
-    }
+	var tr = document.createElement('tr');
 
-    table.appendChild(tr);
-    toolbar.appendChild(table);
-    
-    if (smiley == 1)
-    {
-        for (var i=0; i<5; i++)
-        {
-            var table = document.createElement('table');
-            table.style.display = "none";
-            table.style.border = "0";
-            table.cellSpacing = 1;
-            table.cellPadding = 0;
-            table.id = area.id + "smile" + i;
-            table.appendChild(createSmileysTable(i, area.id));
-            toolbar.appendChild(table);
-        }
-    }
+	for (var i = 0; i < c.length; i++) {
+		if (i == 20) {
+			table.appendChild(tr);
+			tr = document.createElement('tr');
+		}
 
-    area.parentNode.parentNode.insertBefore(toolbar, area.parentNode);
+		var td = document.createElement('td');
+		td.style.border = "1px solid #999999";
+		var is_image;
+		if (i < 11) {
+			is_image = true;
+			td.width = "18px";
+			td.height = "17px";
+			td.rowSpan = "2";
+		} else {
+			is_image = false;
+			td.width = "8px";
+			td.height = "8px";
+		}
+		if (i != 19) add_tool(td, c[i][1], c[i][0], area.id, is_image);
+		else if (!smiley) continue;
+		else {
+			var a = document.createElement('a');
+			a.href = 'javascript:displaySmileysArea("' + area.id + '")';
+			a.id = area.id.substr("area".length, area.id.length);
+
+			var image = document.createElement('img');
+			image.src = 'http://img.kraland.org/s/' + "01" + '.gif'
+			td.style.border = "1px solid #999999";
+			td.rowSpan = 2;
+			a.appendChild(image);
+			td.appendChild(a);
+		}
+		tr.appendChild(td);
+	}
+
+	table.appendChild(tr);
+	toolbar.appendChild(table);
+
+	if (smiley == 1) {
+		for (var i = 0; i < 6; i++) {
+			var table = document.createElement('table');
+			table.style.display = "none";
+			table.style.border = "0";
+			table.cellSpacing = 1;
+			table.cellPadding = 0;
+			table.id = area.id + "smile" + i;
+			table.appendChild(createSmileysTable(i, area.id));
+			toolbar.appendChild(table);
+		}
+	}
+
+	area.parentNode.parentNode.insertBefore(toolbar, area.parentNode);
 }
 
 
-function add_tool (node, str, tag, id, is_image)
-{
-    var a = document.createElement('a');
-    a.href = 'javascript:add2tag("'+ tag +'", "'+ id +'","1")';
-    a.id = id.substr("area".length, id.length);
+function add_tool(node, str, tag, id, is_image) {
+	var a = document.createElement('a');
+	a.href = 'javascript:add2tag("' + tag + '", "' + id + '","1")';
+	a.id = id.substr("area".length, id.length);
 
-    if (is_image)
-    {
-        var image = document.createElement('img');
-        image.src = str;
-        a.appendChild(image);
-    }
-    else
-    {
-        var div = document.createElement('div');
-        div.style.margin = "0";
-        div.style.width = "8px";
-        div.style.height = "8px";
-        div.style.backgroundColor = str;
-        a.appendChild(div);
-    }
+	if (is_image) {
+		var image = document.createElement('img');
+		image.src = str;
+		a.appendChild(image);
+	} else {
+		var div = document.createElement('div');
+		div.style.margin = "0";
+		div.style.width = "8px";
+		div.style.height = "8px";
+		div.style.backgroundColor = str;
+		a.appendChild(div);
+	}
 
-    a.addEventListener('mouseup', mouseUp, true );
-    node.appendChild(a);
+	a.addEventListener('mouseup', mouseUp, true);
+	node.appendChild(a);
 }
 
 function add2tag(tag, id, tagtype) {
-    textselect = document.getElementById(id);
-    if (textselect == null) return;
-    
-    if ( tag == "mail" )
-    {
-        textselect.value = "[/i]" + textselect.value + "[i]";
+	textselect = document.getElementById(id);
+	if (textselect == null) return;
 
-        textselect.focus();	
-        return;
-    }
-	
-    if( tag == "url" )	{
-        eq = "=";
-    }
-    else {
-        eq = "";
-    }
-    var selLength = textselect.textLength;
-    var selStart = textselect.selectionStart;
-    var selEnd = textselect.selectionEnd;
-
-    if (selEnd == 1 || selEnd == 2)
-	selEnd = selLength;
-
-    var s1 = (textselect.value).substring(0,selStart);
-    var s2 = (textselect.value).substring(selStart, selEnd);
-    var s3 = (textselect.value).substring(selEnd, selLength);
-    if (textselect.selectionEnd &&
-	(textselect.selectionEnd - textselect.selectionStart > 0)
-	&& tagtype == 1 ) {
-	textselect.value = s1 + "[" + tag + eq + "]" + s2 + "[/" + tag + "]" + s3;
-	textselect.selectionStart = s1.length;
-	textselect.selectionEnd = textselect.textLength - s3.length;
-    } 
-    else {
-	if ( tagopen == tag && tagtype == 1 ) {
-	    textselect.value = s1 + "[/" + tag + "]" + s3;
-	    tagopen = '';
-	} 
-	else {
-	    textselect.value = s1 + "[" + tag + eq + "]" + s3;
-	    tagopen = tag;
+	if (tag === "url" || tag === "mail") {
+		eq = "=";
+	} else {
+		eq = "";
 	}
-	textselect.selectionStart = textselect.textLength - s3.length;
-	textselect.selectionEnd = textselect.textLength - s3.length;
-    }
-    textselect.focus();	
+	var selLength = textselect.textLength;
+	var selStart = textselect.selectionStart;
+	var selEnd = textselect.selectionEnd;
+
+	if (selEnd == 1 || selEnd == 2)
+		selEnd = selLength;
+
+	var s1 = (textselect.value).substring(0, selStart);
+	var s2 = (textselect.value).substring(selStart, selEnd);
+	var s3 = (textselect.value).substring(selEnd, selLength);
+	if (textselect.selectionEnd &&
+		(textselect.selectionEnd - textselect.selectionStart > 0) && tagtype == 1) {
+		textselect.value = s1 + "[" + tag + eq + "]" + s2 + "[/" + tag + "]" + s3;
+		textselect.selectionStart = s1.length;
+		textselect.selectionEnd = textselect.textLength - s3.length;
+	} else {
+		if (tagopen == tag && tagtype == 1) {
+			textselect.value = s1 + "[/" + tag + "]" + s3;
+			tagopen = '';
+		} else {
+			textselect.value = s1 + "[" + tag + eq + "]" + s3;
+			tagopen = tag;
+		}
+		textselect.selectionStart = textselect.textLength - s3.length;
+		textselect.selectionEnd = textselect.textLength - s3.length;
+	}
+	textselect.focus();
 }
-
-function convert (S) {
-
-    if (S.indexOf('[') < 0) return S;
-    
-    function X(p, f) { return new RegExp(p, f) }
-    function D(s) { return rD.exec(s) }
-    function R(s) { return s.replace(rB, P) }
-    function A(s, p) { for (var i in p) s = s.replace(X(i, 'g'), p[i]); return s; }
-
-    function P($0, $1, $2, $3) {
-        if ($3 && $3.indexOf('[') > -1) $3 = R($3);
-        switch ($1) {
-            case 'spoiler':
-              return '<div><div class="pre-spoiler"><span style="float: left; padding-top: 2px;">Spoiler</span> <input value="Voir" class="see-spoiler" onclick="if (this.parentNode.parentNode.getElementsByTagName(\'div\')[1].getElementsByTagName(\'div\')[0].style.display != \'\') { this.parentNode.parentNode.getElementsByTagName(\'div\')[1].getElementsByTagName(\'div\')[0].style.display = \'\';this.innerText = \'\'; this.value = \'Cacher\'; } else { this.parentNode.parentNode.getElementsByTagName(\'div\')[1].getElementsByTagName(\'div\')[0].style.display = \'none\'; this.value =\'Voir\';}" type="button"></div><div><div class="spoiler" style="display: none;">' + $3 + '</div></div></div>';
-            case 'url':
-            case 'mail':
-              return '<a '+ L[$1] + ($2||$3) +'" target="_blank">'+ $3 +'</a>';
-            case 'img':
-              var d = D($2);
-              return '<img src="'+ $3 +'"'+ (d ? ' width="'+ d[1] +'" height="'+ d[2] +'"' : '') +' alt="'+ (d ? '' : $2) +'" />';
-            case 'left':
-            case 'right':
-              return '<p align="'+ $1 +'">'+ $3 +'</p>';
-            case 'center':
-              return '<center>'+ $3 +'</center>';
-            case 'quote':
-              return '<br><div align=right><hr width=250><i>' + $3 + '<br></i><hr width=250></div>';
-            case 'b':
-	          case 'i':
-	          case 'u':
-	          case 'strike':
-	            return '<'+ $1 +'>'+ $3 +'</'+ $1 +'>';
-        }
-        return '['+ $1 + ($2 ? '='+ $2 : '') +']'+ $3 +'[/'+ $1 +']';
-    }
-
-    var rB = X('\\[([a-z][a-z0-9]*)(?:=([^\\]]+))?]((?:.|[\r\n])*?)\\[/\\1]', 'g'), rD = X('^(\\d+)x(\\d+)$');
-    var L = {url: 'href="', mail: 'href="mailto: '};
-    var C = {pre: [{'<': '&lt;'}, '<pre>', '</pre>']};
-    var Cols = {
-	yellow: '#f4ac00',
-	orange: '#f77400',
-	fuchsia: '#ed6161',
-	red: '#d50000',
-	maroon: 'maroon',
-	brown: '#5e432d',
-	purple: 'purple',
-	navy: 'navy',
-	blue: '#2b2be4',
-	teal: 'teal',
-	lightgreen: '#219c5a',
-	lightblue: '#5577bc',
-	green: '#006f00',
-	olive: 'olive',
-	gray: 'gray',
-	darkgray: '#5a5a5a',
-	aqua: 'aqua'
-    };
-    var llc = 0;
-    function nhex () {
-	var str = (++llc).toString(16);
-	str = str.toUpperCase();
-	if (llc < 16) str = '0' + str;
-	return str;
-    }
-    var Sm = {
-	':[)]' : nhex(),
-	';[)]' : nhex(),
-	'8[)]' : nhex(),
-	':\]' : nhex(),
-	':D' : nhex(),
-	':p' : nhex(),
-	':6' : nhex(),
-	'3[)]' : nhex(),
-	':,' : nhex(),
-	':[(]' : nhex(),
-	':[[]' : nhex(),
-	'[)][[]' : nhex(),
-	'![(]' : nhex(),
-	'[ù^]\]' : nhex(),
-	'x[(]' : nhex(),
-	'8[(]' : nhex(),
-	'o[)]' : nhex(),
-	'%[(]' : nhex(),
-	':o' : nhex(),
-	':[|]' : nhex(),
-	'[)][|]' : nhex(),
-	';[(]' : nhex(),
-	';[[]' : nhex(),
-	':f' : nhex(),
-	';o' : nhex(),
-	';[|]' : nhex(),
-	'[[][(]' : nhex(),
-	'0[)]' : nhex(),
-	':B' : nhex(),
-	':=' : nhex(),
-	'8\]' : nhex(),
-	'[|][)]' : nhex(),
-	'O[)]' : nhex(),
-	'8î' : nhex(),
-	'8Î' : nhex(),
-	'j[)]' : nhex(),
-	'p[)]' : nhex(),
-	'[ù^][)]' : nhex(),
-	'[)]f' : nhex(),
-	':î' : nhex(),
-	':Î' : nhex(),
-	'[%][)]' : nhex(),
-	'8O' : nhex(),
-	'OX' : nhex(),
-	'[)]%' : nhex(),
-	'oX' : nhex(),
-	':[.]' : nhex(),
-	'o[(]' : nhex(),
-	'hp' : nhex(),
-	':n' : nhex(),
-	':P' : nhex(),
-	':x' : nhex(),
-	'8p' : nhex(),
-	'j[|]' : nhex(),
-	'kD' : nhex(),
-	'k\]' : nhex(),
-	';p' : nhex(),
-	':l' : nhex(),
-	':[+]' : nhex(),
-	':-' : nhex(),
-	'VV' : nhex(),
-	'%%' : nhex(),
-	'Q[)]' : nhex(),
-	'fr' : nhex(),
-	'en' : nhex(),
-	'de' : nhex(),
-	'es' : nhex(),
-	'it' : nhex(),
-	'nl' : nhex(),
-	'ca' : nhex(),
-	'sw' : nhex(),
-	'jp' : nhex(),
-	'[*]t' : nhex(),
-	'[*]j' : nhex(),
-	'[*]o' : nhex(),
-	'[*]r' : nhex(),
-	'[*]v' : nhex(),
-	'[*]c' : nhex(),
-	'[*]b' : nhex(),
-	'[*]m' : nhex(),
-	'[*]n' : nhex(),
-	'=o' : nhex(),
-	'=n' : nhex(),
-	'=S' : nhex(),
-	'ty' : nhex(),
-	'mt' : nhex(),
-	'so' : nhex(),
-	'iz' : nhex(),
-	'jo' : nhex(),
-	'tk' : nhex(),
-	'pk' : nhex(),
-	'ka' : nhex(),
-	'ke' : nhex(),
-	'3i' : nhex(),
-	'[+][)]' : nhex(),
-	'st' : nhex(),
-	'[§]c' : nhex(),
-	'[§]o' : nhex(),
-	'[§]g' : nhex(),
-	'co' : nhex(),
-	'[§]p' : nhex(),
-	'=[)]' : nhex(),
-	'=!' : nhex(),
-	'=k' : nhex(),
-	'=y' : nhex()
-    };
-    var I = {}, B = {};
-
-    for (var i in C) I['\\[('+ i +')]((?:.|[\r\n])*?)\\[/\\1]'] = function($0, $1, $2) {return C[$1][1] + A($2, C[$1][0]) + C[$1][2]};
-    for (var i in Cols) {B['\\[('+ i +')]'] = '<font color="'+ Cols[i] +'">'; B['\\[/'+ i +']'] = '</font>';}
-    for (var i in Sm) {B['\\[('+ i +')]'] = '<img src="http://www.kramages.org/s/' + Sm[i] +'.gif">'; }
-    return R(A(A(S, I), B));
-}
-
 
 main();
