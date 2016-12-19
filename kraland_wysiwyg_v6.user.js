@@ -2,7 +2,7 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.17
+// @version   1.0.18
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
@@ -23,7 +23,8 @@ var OPTION_REFORMATER_TEXTE = 1;
 
 
 /*
-1.0.17
+
+1.0.18
 Fixing link # to jump with event cancelling.
 
 1.0.16
@@ -916,26 +917,29 @@ function addTag(tag, id) {
 
 function makeSmileyOnclickHandler(smileyTagString, htmlIdentifier) {
 	return function (event) {
-		event.preventDefault();
 		addSmileyTag(smileyTagString, htmlIdentifier);
 		updateAllPreviews();
+		event.preventDefault();
+		event.stopPropagation();
 		return false;
 	};
 }
 
 function makeTagOnclickHandler(tagString, htmlIdentifier) {
 	return function (event) {
-		event.preventDefault();
 		addTag(tagString, htmlIdentifier);
 		updateAllPreviews();
+		event.preventDefault();
+		event.stopPropagation();
 		return false;
 	};
 }
 
 function makeDisplaySmileysOnclickHandler(textareaIdentifier) {
 	return function (event) {
-		event.preventDefault();
 		displaySmileysArea(textareaIdentifier);
+		event.preventDefault();
+		event.stopPropagation();
 		return false;
 	};
 }
@@ -954,7 +958,7 @@ function createSmileysTable(tableNum, areaId) {
 		var td = document.createElement('td');
 		var a = document.createElement('a');
 		a.onmousedown = makeSmileyOnclickHandler(SMILEYS[(SMILEY_COUNT_PER_TAB * tableNum) + i], areaId);
-		a.href = '#';
+		a.href = '#/';
 		a.areaId = areaId.substr("area".length, areaId.length);
 
 		var image = document.createElement('img');
@@ -969,7 +973,7 @@ function createSmileysTable(tableNum, areaId) {
 function add_tool(node, str, tag, id, is_image) {
 	var a = document.createElement('a');
 	a.onmousedown = makeTagOnclickHandler(tag, id);
-	a.href = '#';
+	a.href = '#/';
 	a.id = id.substr("area".length, id.length);
 
 	if (is_image) {
@@ -1069,7 +1073,7 @@ function add_toolbar(area) {
 
 	a = document.createElement('a');
 	a.onclick = makeDisplaySmileysOnclickHandler(area.id);
-	a.href = '#';
+	a.href = '#/';
 	a.id = area.id.substr("area".length, area.id.length);
 
 	var image = document.createElement('img');
