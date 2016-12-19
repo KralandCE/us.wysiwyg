@@ -2,7 +2,7 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.12
+// @version   1.0.13
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
@@ -34,17 +34,20 @@ var smiley = 1;
 
 
 /*
-	1.0.12 :
-	fixed spoiler tag description
-	
-	1.0.11
-	dummy maj for update
+1.0.13:
+adding fleft and fright tags
 
-	1.0.10 :
-	removing unused bbcode
-	adding kraland bbcode
-	adding BBCode Parser library
-	custom process function from library ( tagged with @since and @removed )
+1.0.12:
+fixed spoiler tag description
+
+1.0.11:
+dummy maj for update
+
+1.0.10:
+removing unused bbcode
+adding kraland bbcode
+adding BBCode Parser library
+custom process function from library ( tagged with @since and @removed )
 */
 
 
@@ -232,6 +235,22 @@ var XBBCODE = (function () {
 			},
 			closeTag: function (params, content) {
 				return '';
+			}
+		},
+		"fleft": {
+			openTag: function (params, content) {
+				return '<div class="limg">';
+			},
+			closeTag: function (params, content) {
+				return '<div>';
+			}
+		},
+		"fright": {
+			openTag: function (params, content) {
+				return '<div class="rimg">';
+			},
+			closeTag: function (params, content) {
+				return '<div>';
 			}
 		},
 		"img": {
