@@ -2,12 +2,12 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.13
+// @version   1.0.14
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
 
-/*jslint passfail: true, plusplus: true, vars: true, browser: true, sloppy: true*/
+/*jslint passfail: false, plusplus: true, vars: true, browser: true, sloppy: true, regexp: true*/
 
 /*
 ***********************************************************************************************
@@ -24,30 +24,32 @@ var OPTION_REFORMATER_TEXTE = 1;
 // 1 reformate le message
 // 0 désactive cette option
 
-var smiley = 1;
-// L'option smiley permet d'ajouter directement dans les fenêtres d'ordre la liste des smileys
-// 1 ajoute les smileys
-// 0 désactive cette option
-
 /* Fin des options
  *********************************************************************************************** */
 
-
 /*
+1.0.14
+No more rewriting functions into html. What was that for, anyway ? It was even harder to add breakpoints.
+Function add2Tag with 1 or 0 as parameter was confusing and is split in two distinct functions for normal tags and smiley tags.
+Removing "smiley" option. Smileys are always shown.
+Improving global js following the specifications of jslint and jshint.
+Improving displaySmileysArea with loops.
+Using consts instead of magic numbers.
+
 1.0.13:
-adding fleft and fright tags
+Adding fleft and fright tags.
 
 1.0.12:
-fixed spoiler tag description
+Fixed spoiler tag description.
 
 1.0.11:
-dummy maj for update
+Dummy maj for update.
 
 1.0.10:
-removing unused bbcode
-adding kraland bbcode
-adding BBCode Parser library
-custom process function from library ( tagged with @since and @removed )
+Removing unused bbcode.
+Adding kraland bbcode.
+Adding BBCode Parser library.
+Custom process function from library ( tagged with @since and @removed ).
 */
 
 
@@ -63,7 +65,9 @@ var img_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t
 var url_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHYYACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJqcl5yZkQADo6OJpKWJlwMbAqwbo62xA6mrAqe3tbO2tiurG7+/A72vkLm4pKy6BLWusK62iJHLp6bUqZ+g2JWe2pbdk4EAOw==";
 var mail_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHoIACgoOEhYQAiIkfHYwEiYkCjwCMHR8aHZIAkQAaACIfM4sdA5kCHh4aGh+WIqgeraekAhqzIiIaBLm6NxkZsh4ZGp8aFrq5Qz6+msAlzSUDAsY+HgS/vde9xjc31Zq00cbY17+CxgQZOMIaJd2mGea6GjMdOMru8LmXHbi/A/7+z0qo2vdMFgBHiHB0mHFpFYASkCSlstVBRKlMqxxmCgQAOw==";
 
-var smileyRegexps = [':[)]', ';[)]', '8[)]', ':\]', ':D', ':p', ':6', '3[)]', ':,', ':[(]', ':[[]', '[)][[]', '![(]', '[ù^]\]', 'x[(]', '8[(]', 'o[)]', '%[(]', ':o', ':[|]', '[)][|]', ';[(]', ';[[]', ':f', ';o', ';[|]', '[[][(]', '0[)]', ':B', ':=', '8\]', '[|][)]', 'O[)]', '8î', '8Î', 'j[)]', 'p[)]', '[ù^][)]', '[)]f', ':î', ':Î', '[%][)]', '8O', 'OX', '[)]%', 'oX', ':[.]', 'o[(]', 'hp', ':n', ':P', ':x', '8p', 'j[|]', 'kD', 'k\]', ';p', ':l', ':[+]', ':-', 'VV', '%%', 'Q[)]', 'fr', 'en', 'de', 'es', 'it', 'nl', 'ca', 'sw', 'jp', '[*]t', '[*]j', '[*]o', '[*]r', '[*]v', '[*]c', '[*]b', '[*]m', '[*]n', '=o', '=n', '=S', 'ty', 'mt', 'so', 'iz', 'jo', 'tk', 'pk', 'ka', 'ke', '3i', '[+][)]', 'st', '[§]c', '[§]o', '[§]g', 'co', '[§]p', '=[)]', '=!', '=k', '=y', '[§]x', '[§]b', '[§]3', '[§];', '[§][+]', '[§]-', '[§][|]', '[§]V', '[§]î', '[§]h', '[§]w', '[§]k', '[§]v', '[§]d', '[§]i', '[§]C', '[§]l', '[§]y', '[§]m', '[§]D', '[§]r'];
+var SMILEYS = [':)', ';)', '8)', ':]', ':D', ':p', ':6', '3)', ':,', ':(', ':[', ')[', '!(', '^]', 'x(', '8(', 'o)', '%(', ':o', ':|', ')|', ';(', ';[', ':f', ';o', ';|', '[(', '0)', ':B', ':=', '8]', '|)', 'O)', '8î', '8Î', 'j)', 'p)', '^)', ')f', ':î', ':Î', '%)', '8O', 'OX', ')%', 'oX', ':.', 'o(', 'hp', ':n', ':P', ':x', '8p', 'j|', 'kD', 'k]', ';p', ':l', ':+', ':-', 'VV', '%%', 'Q)', 'fr', 'en', 'de', 'es', 'it', 'nl', 'ca', 'sw', 'jp', '*t', '*j', '*o', '*r', '*v', '*c', '*b', '*m', '*n', '=o', '=n', '=S', 'ty', 'mt', 'so', 'iz', 'jo', 'tk', 'pk', 'ka', 'ke', '3i', '+)', 'st', '§c', '§o', '§g', 'co', '§p', '=)', '=!', '=k', '=y', '§x', '§b', '§3', '§;', '§+', '§-', '§|', '§V', '§î', '§h', '§w', '§k', '§v', '§d', '§i', '§C', '§l', '§y', '§m', '§D', '§r'];
+
+var SMILEYS_REGEXP = [':[)]', ';[)]', '8[)]', ':]', ':D', ':p', ':6', '3[)]', ':,', ':[(]', ':[[]', '[)][[]', '![(]', '[ù^]]', 'x[(]', '8[(]', 'o[)]', '%[(]', ':o', ':[|]', '[)][|]', ';[(]', ';[[]', ':f', ';o', ';[|]', '[[][(]', '0[)]', ':B', ':=', '8]', '[|][)]', 'O[)]', '8î', '8Î', 'j[)]', 'p[)]', '[ù^][)]', '[)]f', ':î', ':Î', '[%][)]', '8O', 'OX', '[)]%', 'oX', ':[.]', 'o[(]', 'hp', ':n', ':P', ':x', '8p', 'j[|]', 'kD', 'k]', ';p', ':l', ':[+]', ':-', 'VV', '%%', 'Q[)]', 'fr', 'en', 'de', 'es', 'it', 'nl', 'ca', 'sw', 'jp', '[*]t', '[*]j', '[*]o', '[*]r', '[*]v', '[*]c', '[*]b', '[*]m', '[*]n', '=o', '=n', '=S', 'ty', 'mt', 'so', 'iz', 'jo', 'tk', 'pk', 'ka', 'ke', '3i', '[+][)]', 'st', '[§]c', '[§]o', '[§]g', 'co', '[§]p', '=[)]', '=!', '=k', '=y', '[§]x', '[§]b', '[§]3', '[§];', '[§][+]', '[§]-', '[§][|]', '[§]V', '[§]î', '[§]h', '[§]w', '[§]k', '[§]v', '[§]d', '[§]i', '[§]C', '[§]l', '[§]y', '[§]m', '[§]D', '[§]r'];
 
 // Colors defined by Kraland @since 1.0.10
 
@@ -97,8 +101,10 @@ var SPAN_TAG_MAP = {
 	u: 'text-decoration: underline;'
 };
 
+var SMILEY_TAB_COUNT = 6;
+
 function decIntegerToHexString(intValue) {
-	str = (intValue).toString(16);
+	var str = (intValue).toString(16);
 	str = str.toUpperCase();
 	if (intValue < 16) {
 		str = '0' + str;
@@ -112,9 +118,9 @@ function replaceAllSmileys(text) {
 	var smileyHex = "";
 	var smileyHtml = "";
 
-	for (i = 0; i < smileyRegexps.length; i++) {
+	for (i = 0; i < SMILEYS_REGEXP.length; i++) {
 		smileyHex = decIntegerToHexString(i + 1);
-		regexp = new RegExp('\\[(' + smileyRegexps[i] + ')]', 'g');
+		regexp = new RegExp('\\[(' + SMILEYS_REGEXP[i] + ')]', 'g');
 		smileyHtml = '<img src="http://img.kraland.org/s/' + smileyHex + '.gif">';
 		text = text.replace(regexp, smileyHtml);
 	}
@@ -169,7 +175,7 @@ var XBBCODE = (function () {
 	// -----------------------------------------------------------------------------
 
 	var me = {},
-		urlPattern = /^(?:https?|file|c):(?:\/{1,3}|\\{1})[-a-zA-Z0-9:;@#%&()~_?\+=\/\\\.]*$/,
+		urlPattern = /^(?:https?|file|c):(?:\/{1,3}|\\{1})[\-a-zA-Z0-9:;@#%&()~_?\+=\/\\\.]*$/,
 		colorNamePattern = /^(?:aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|green|greenyellow|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white|whitesmoke|yellow|yellowgreen)$/,
 		colorCodePattern = /^#?[a-fA-F0-9]{6}$/,
 		emailPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/,
@@ -331,8 +337,8 @@ var XBBCODE = (function () {
 			}
 		},
 		/*
-		    The [*] tag is special since the user does not define a closing [/*] tag when writing their bbcode.
-		    Instead this module parses the code and adds the closing [/*] tag in for them. None of the tags you
+		    The * tag is special since the user does not define a closing * tag when writing their bbcode.
+		    Instead this module parses the code and adds the closing * tag in for them. None of the tags you
 		    add will act like this and this tag is an exception to the others.
 		*/
 		"*": {
@@ -361,13 +367,19 @@ var XBBCODE = (function () {
 		return createSpanTag('color:' + param);
 	}
 
-	for (var colorHTML in COLOR_TAG_MAP) {
-		tags[colorHTML] = createColorTag(COLOR_TAG_MAP[colorHTML]);
-	};
+	var colorHTML;
+	for (colorHTML in COLOR_TAG_MAP) {
+		if (COLOR_TAG_MAP.hasOwnProperty(colorHTML)) {
+			tags[colorHTML] = createColorTag(COLOR_TAG_MAP[colorHTML]);
+		}
+	}
 
-	for (var spanHTML in SPAN_TAG_MAP) {
-		tags[spanHTML] = createSpanTag(SPAN_TAG_MAP[spanHTML]);
-	};
+	var spanHTML;
+	for (spanHTML in SPAN_TAG_MAP) {
+		if (SPAN_TAG_MAP.hasOwnProperty(spanHTML)) {
+			tags[spanHTML] = createSpanTag(SPAN_TAG_MAP[spanHTML]);
+		}
+	}
 
 
 	// create tag list and lookup fields
@@ -410,7 +422,8 @@ var XBBCODE = (function () {
 		// create the regex for escaping ['s that aren't apart of tags
 		(function () {
 			var closeTagList = [];
-			for (var ii = 0; ii < tagList.length; ii++) {
+			var ii = 0;
+			for (ii = 0; ii < tagList.length; ii++) {
 				if (tagList[ii] !== "\\*") { // the * tag doesn't have an offical closing tag
 					closeTagList.push("/" + tagList[ii]);
 				}
@@ -420,7 +433,7 @@ var XBBCODE = (function () {
 			closeTags = new RegExp("(\\[)(" + closeTagList.join("|") + ")(\\])", "gi");
 		})();
 
-	};
+	}
 	initTags();
 
 	// -----------------------------------------------------------------------------
@@ -481,7 +494,7 @@ var XBBCODE = (function () {
 	    from the HTML code tags at the end of the processing.
 	*/
 	function updateTagDepths(tagContents) {
-		tagContents = tagContents.replace(/\<([^\>][^\>]*?)\>/gi, function (matchStr, subMatchStr) {
+		tagContents = tagContents.replace(/<([^\>][^\>]*?)\>/gi, function (matchStr, subMatchStr) {
 			var bbCodeLevel = subMatchStr.match(/^bbcl=([0-9]+) /);
 			if (bbCodeLevel === null) {
 				return "<bbcl=0 " + subMatchStr + ">";
@@ -522,44 +535,14 @@ var XBBCODE = (function () {
 		return output;
 	}
 
-	/*
-	    The star tag [*] is special in that it does not use a closing tag. Since this parser requires that tags to have a closing
-	    tag, we must pre-process the input and add in closing tags [/*] for the star tag.
-	    We have a little levaridge in that we know the text we're processing wont contain the <> characters (they have been
-	    changed into their HTML entity form to prevent XSS and code injection), so we can use those characters as markers to
-	    help us define boundaries and figure out where to place the [/*] tags.
-	*/
-	function fixStarTag(text) {
-		text = text.replace(/\[(?!\*[ =\]]|list([ =][^\]]*)?\]|\/list[\]])/ig, "<");
-		text = text.replace(/\[(?=list([ =][^\]]*)?\]|\/list[\]])/ig, ">");
-
-		while (text !== (text = text.replace(/>list([ =][^\]]*)?\]([^>]*?)(>\/list])/gi, function (matchStr, contents, endTag) {
-
-				var innerListTxt = matchStr;
-				while (innerListTxt !== (innerListTxt = innerListTxt.replace(/\[\*\]([^\[]*?)(\[\*\]|>\/list])/i, function (matchStr, contents, endTag) {
-						if (endTag.toLowerCase() === ">/list]") {
-							endTag = "</*]</list]";
-						} else {
-							endTag = "</*][*]";
-						}
-						return "<*]" + contents + endTag;
-					})));
-
-				innerListTxt = innerListTxt.replace(/>/g, "<");
-				return innerListTxt;
-			})));
-
-		// add ['s for our tags back in
-		text = text.replace(/</g, "[");
-		return text;
-	}
-
 	function addBbcodeLevels(text) {
 		while (text !== (text = text.replace(pbbRegExp, function (matchStr, tagName, tagParams, tagContents) {
 				matchStr = matchStr.replace(/\[/g, "<");
 				matchStr = matchStr.replace(/\]/g, ">");
 				return updateTagDepths(matchStr);
-			})));
+			}))) {
+
+		}
 		return text;
 	}
 
@@ -570,7 +553,7 @@ var XBBCODE = (function () {
 	// API, Expose all available tags
 	me.tags = function () {
 		return tags;
-	}
+	};
 
 	// API
 	me.addTags = function (newtags) {
@@ -579,7 +562,7 @@ var XBBCODE = (function () {
 			tags[tag] = newtags[tag];
 		}
 		initTags();
-	}
+	};
 
 	me.process = function (config) {
 
@@ -611,14 +594,16 @@ var XBBCODE = (function () {
 				tagParams = tagParams || "";
 				tagContents = tagContents || "";
 				return "[" + tagName + tagParams + "]" + tagContents + "[/" + tagName + "]";
-			})));
+			}))) {
+
+		}
 
 		//config.text = fixStarTag(config.text); @removed 1.0.10
 		config.text = addBbcodeLevels(config.text); // add in level metadata
 
 		errQueue = checkParentChildRestrictions("bbcode", config.text, -1, "", "", config.text);
 
-		ret.html = parse(config);;
+		ret.html = parse(config);
 
 		if (ret.html.indexOf("[") !== -1 || ret.html.indexOf("]") !== -1) {
 			errQueue.push("Some tags appear to be misaligned.");
@@ -660,6 +645,7 @@ var XBBCODE = (function () {
 
 var Previews = [];
 var n_prevs = 0;
+var currentOpenedTag = ''; // used when clicking twice on the same tag (without selection). First click inserts opening tag, second click inserts closing tag.
 
 /****************************************
  *		SECURED FUNCTIONS				*
@@ -726,12 +712,12 @@ function key_up(event) {
 	}
 
 	var doc = document;
-
+	var str;
 	// Simple check for the italic checkbox, only in the popup window
 	if (isItalic(area)) {
-		var str = convert('[i]' + area.value + '[/i]');
+		str = convert('[i]' + area.value + '[/i]');
 	} else {
-		var str = convert(area.value);
+		str = convert(area.value);
 	}
 
 	var id = area.id.substr("area".length, area.id.length);
@@ -752,10 +738,14 @@ function key_up(event) {
 	//if (area.value.search(new RegExp(/(\\|<\S)/)) != -1) alert_carac = "<p align='right'><font color='red'><b>Aaaaaaaaaaaahhhh un < ou un \ ! Vade retro satanas !</b></font></p>";
 
 	var nbCarac = area.value.match(new RegExp(/\"/g));
-	if (nbCarac != null) count = count + 5 * nbCarac.length;
+	if (nbCarac !== null) {
+		count = count + 5 * nbCarac.length;
+	}
 
 	nbCarac = area.value.match(new RegExp(/(\>|\<)/g));
-	if (nbCarac != null) count = count + 3 * nbCarac.length;
+	if (nbCarac !== null) {
+		count = count + 3 * nbCarac.length;
+	}
 
 	foot.innerHTML = area.value.length + count + " caractères"; // Not used anymore : + alert_carac;
 }
@@ -769,7 +759,8 @@ function mouseUp(evt) {
 // Sets the width and height of every textarea in the popup window to 100% and 400px.
 function extendTextArea() {
 	var areas = document.getElementsByTagName("textarea");
-	for (var i = 0; i < areas.length; i++) {
+	var i;
+	for (i = 0; i < areas.length; i++) {
 		areas[i].style.width = "450px";
 		areas[i].style.height = "400px";
 	}
@@ -778,76 +769,34 @@ function extendTextArea() {
 // Called when the smiley is clicked and display the next set of smileys
 // @param areaId the current textArea's id
 function displaySmileysArea(areaId) {
-	var tab1 = document.getElementById(areaId + "smile0");
-	var tab2 = document.getElementById(areaId + "smile1");
-	var tab3 = document.getElementById(areaId + "smile2");
-	var tab4 = document.getElementById(areaId + "smile3");
-	var tab5 = document.getElementById(areaId + "smile4");
-	var tab6 = document.getElementById(areaId + "smile5");
+	var smileyTabs = [];
+	var nextShowingTabIndex = -1;
+	var i = 0;
 
-	if (tab1.style.display === "block") {
-		tab1.style.display = "none";
-		tab2.style.display = "block";
-		tab2.style.height = "30px";
-	} else if (tab2.style.display === "block") {
-		tab2.style.display = "none";
-		tab3.style.display = "block";
-		tab3.style.height = "30px";
-	} else if (tab3.style.display === "block") {
-		tab3.style.display = "none";
-		tab4.style.display = "block";
-		tab4.style.height = "30px";
-	} else if (tab4.style.display === "block") {
-		tab4.style.display = "none";
-		tab5.style.display = "block";
-		tab5.style.height = "30px";
-	} else if (tab5.style.display == "block") {
-		tab5.style.display = "none";
-		tab6.style.display = "block";
-		tab6.style.height = "30px";
-	} else if (tab6.style.display == "block") {
-		tab6.style.display = "none";
-		tab1.style.height = "30px";
-	} else tab1.style.display = "block";
-}
-
-// Returns a smiley's string
-// @param index the smiley's position in the array
-function getSmiley(index) {
-	var tab = [':)', ';)', '8)', ':]', ':D', ':p', ':6', '3)', ':,', ':(', ':[', ')[', '!(', '^]', 'x(', '8(', 'o)', '%(', ':o', ':|', ')|', ';(', ';[', ':f', ';o', ';|', '[(', '0)', ':B', ':=', '8]', '|)', 'O)', '8î', '8Î', 'j)', 'p)', '^)', ')f', ':î', ':Î', '%)', '8O', 'OX', ')%', 'oX', ':.', 'o(', 'hp', ':n', ':P', ':x', '8p', 'j|', 'kD', 'k]', ';p', ':l', ':+', ':-', 'VV', '%%', 'Q)', 'fr', 'en', 'de', 'es', 'it', 'nl', 'ca', 'sw', 'jp', '*t', '*j', '*o', '*r', '*v', '*c', '*b', '*m', '*n', '=o', '=n', '=S', 'ty', 'mt', 'so', 'iz', 'jo', 'tk', 'pk', 'ka', 'ke', '3i', '+)', 'st', '§c', '§o', '§g', 'co', '§p', '=)', '=!', '=k', '=y', '§x', '§b', '§3', '§;', '§+', '§-', '§|', '§V', '§î', '§h', '§w', '§k', '§v', '§d', '§i', '§C', '§l', '§y', '§m', '§D', '§r'];
-	return tab[index];
-}
-
-// Creates a html table with 21 smileys in it on the top of a textarea
-// @param tableNum the table's number
-// @param areaId the current textArea's id
-function createSmileysTable(tableNum, areaId) {
-	var SMILEY_COUNT = 21;
-	var currentSmiley = (SMILEY_COUNT * tableNum);
-
-	// Converts numbers in hexadecimal string
-	function base10ToBase16() {
-		// Here is the conversion
-		var str = (++currentSmiley).toString(16);
-		str = str.toUpperCase();
-		if (currentSmiley < 16) str = '0' + str;
-		return str;
+	for (i = 0; i < SMILEY_TAB_COUNT; i++) {
+		smileyTabs[i] = document.getElementById(areaId + "smile" + i);
+		if (smileyTabs[i].style.display === "block") {
+			nextShowingTabIndex = (i + 1);
+		}
 	}
 
-	var tr = document.createElement('tr');
-	for (var i = 0; i < SMILEY_COUNT; i++) {
-		var td = document.createElement('td');
-		var a = document.createElement('a');
-		a.href = 'javascript:add2tag(' + "'" + getSmiley((SMILEY_COUNT * tableNum) + i) + "'" + ', "' + areaId + '","0")';
-		a.areaId = areaId.substr("area".length, areaId.length);
-
-		var image = document.createElement('img');
-		image.src = 'http://img.kraland.org/s/' + base10ToBase16() + '.gif'
-		a.appendChild(image);
-		td.appendChild(a);
-		tr.appendChild(td);
+	// if no block was shown, tabIndex is equals to -1. Display first tab.
+	if (nextShowingTabIndex === -1) {
+		smileyTabs[0].style.display = "block";
+		smileyTabs[0].style.height = "30px";
 	}
-	return tr;
+
+	// if last block was shown, tabIndex is equals to SMILEY_TAB_COUNT. Hide last tab.
+	if (nextShowingTabIndex === SMILEY_TAB_COUNT) {
+		smileyTabs[SMILEY_TAB_COUNT - 1].style.display = "none";
+	}
+
+	// Hide previous tab and display next tab.
+	if (nextShowingTabIndex > 0 && nextShowingTabIndex < SMILEY_TAB_COUNT) {
+		smileyTabs[nextShowingTabIndex - 1].style.display = "none";
+		smileyTabs[nextShowingTabIndex].style.display = "block";
+		smileyTabs[nextShowingTabIndex].style.height = "30px";
+	}
 }
 
 // Creates and display the previsualisation area
@@ -874,7 +823,7 @@ function createPreview(textarea) {
 	prev.innerHTML = "";
 
 	// Add the mouseover event listener to the textarea and the previsualisation area
-	if (OPTION_FREQUENCE_PREVISUALISATION == 0) {
+	if (OPTION_FREQUENCE_PREVISUALISATION === 0) {
 		prev.addEventListener('mouseover', key_up, false);
 		textarea.addEventListener('mousemove', key_up, false);
 	}
@@ -899,17 +848,237 @@ function removeBadQuotes(textarea) {
 }
 
 
+/****************************************
+ *		END SECURED FUNCTIONS			*
+ *****************************************/
+
+function getSelection(htmlIdentifier) {
+	var textselect = document.getElementById(htmlIdentifier);
+
+	if (textselect === null || textselect === undefined) {
+		return null;
+	}
+
+	return {
+		htmlText: textselect,
+		beforeText: (textselect.value).substring(0, textselect.selectionStart),
+		text: (textselect.value).substring(textselect.selectionStart, textselect.selectionEnd),
+		afterText: (textselect.value).substring(textselect.selectionEnd, textselect.textLength),
+		isTextSelected: textselect.selectionEnd && (textselect.selectionEnd - textselect.selectionStart > 0)
+	};
+}
+
+function addSmileyTag(tag, id) {
+	var selection = getSelection(id);
+
+	if (selection !== null) {
+		selection.htmlText.value = selection.beforeText + "[" + tag + "]" + selection.afterText;
+	}
+}
+
+function addTag(tag, id) {
+	var selection = getSelection(id);
+
+	if (selection === null) {
+		return;
+	}
+
+	var eq = (tag === "url" || tag === "mail") ? '=' : '';
+	var openingTag = "[" + tag + eq + "]";
+	var closingTag = "[/" + tag + "]";
+
+	if (selection.isTextSelected) {
+		selection.htmlText.value = selection.beforeText + openingTag + selection.text + closingTag + selection.afterText;
+		selection.htmlText.selectionStart = selection.beforeText.length;
+		selection.htmlText.selectionEnd = selection.htmlText.textLength - selection.afterText.length;
+		selection.htmlText.focus(); // allows to use multiples tags on the same selection
+	} else {
+		if (currentOpenedTag === tag) {
+			selection.htmlText.value = selection.beforeText + closingTag + selection.afterText;
+			currentOpenedTag = '';
+		} else {
+			selection.htmlText.value = selection.beforeText + openingTag + selection.afterText;
+			currentOpenedTag = tag;
+		}
+	}
+}
+
+function makeSmileyOnclickHandler(smileyTagString, htmlIdentifier) {
+	return function () {
+		addSmileyTag(smileyTagString, htmlIdentifier);
+		return false;
+	};
+}
+
+function makeTagOnclickHandler(tagString, htmlIdentifier) {
+	return function () {
+		addTag(tagString, htmlIdentifier);
+		return false;
+	};
+}
+
+function makeDisplaySmileysOnclickHandler(textareaIdentifier) {
+	return function () {
+		displaySmileysArea(textareaIdentifier);
+		return false;
+	};
+}
+
+// Creates a html table with 21 smileys in it on the top of a textarea
+// @param tableNum the table's number
+// @param areaId the current textArea's id
+function createSmileysTable(tableNum, areaId) {
+	var SMILEY_COUNT_PER_TAB = 21;
+	var startingSmileyIndex = (SMILEY_COUNT_PER_TAB * tableNum) + 1;
+
+	var tr = document.createElement('tr');
+	var i = 0;
+	for (i = 0; i < SMILEY_COUNT_PER_TAB; i++) {
+		var td = document.createElement('td');
+		var a = document.createElement('a');
+		a.onclick = makeSmileyOnclickHandler(SMILEYS[(SMILEY_COUNT_PER_TAB * tableNum) + i], areaId);
+		a.href = '#';
+		a.areaId = areaId.substr("area".length, areaId.length);
+
+		var image = document.createElement('img');
+		image.src = 'http://img.kraland.org/s/' + decIntegerToHexString(startingSmileyIndex + i) + '.gif';
+		a.appendChild(image);
+		td.appendChild(a);
+		tr.appendChild(td);
+	}
+	return tr;
+}
+
+function add_tool(node, str, tag, id, is_image) {
+	var a = document.createElement('a');
+	a.onclick = makeTagOnclickHandler(tag, id);
+	a.href = '#';
+	a.id = id.substr("area".length, id.length);
+
+	if (is_image) {
+		var image = document.createElement('img');
+		image.src = str;
+		a.appendChild(image);
+	} else {
+		var div = document.createElement('div');
+		div.style.margin = "0";
+		div.style.width = "8px";
+		div.style.height = "8px";
+		div.style.backgroundColor = str;
+		a.appendChild(div);
+	}
+
+	a.addEventListener('mouseup', mouseUp, true);
+	node.appendChild(a);
+}
+
+function add_toolbar(area) {
+	var toolbar = document.createElement('span');
+	var i = 0;
+
+	var c = [];
+	c[0] = ['b', b_str];
+	c[1] = ['i', i_str];
+	c[2] = ['u', u_str];
+	c[3] = ['strike', s_str];
+	c[4] = ['left', left_str];
+	c[5] = ['center', center_str];
+	c[6] = ['right', right_str];
+	c[7] = ['quote', quote_str];
+	c[8] = ['img', img_str];
+	c[9] = ['url', url_str];
+	c[10] = ['mail', mail_str];
+	c[11] = ["yellow", "#f4ac00"];
+	c[12] = ["orange", "#f77400"];
+	c[13] = ["fuchsia", "#ed6161"];
+	c[14] = ["red", "#d50000"];
+	c[15] = ["maroon", "#7b0000"];
+	c[16] = ["brown", "#5e432d"];
+	c[17] = ["purple", "purple"];
+	c[18] = ["navy", "#00007b"];
+	c[19] = ["smiley", "smiley"];
+	c[20] = ["blue", "#2b2be4"];
+	c[21] = ["lightblue", "#5577bc"];
+	c[22] = ["teal", "#007b7b"];
+	c[23] = ["lightgreen", "#219c5a"];
+	c[24] = ["green", "#006f00"];
+	c[25] = ["olive", "#7b7b00"];
+	c[26] = ["gray", "#7b7b7b"];
+	c[27] = ["darkgray", "#5a5a5a"];
+
+
+	var table = document.createElement('table');
+	table.style.display = "inline";
+	table.style.border = "0";
+	table.cellSpacing = 1;
+	table.cellPadding = 0;
+
+	var tr = document.createElement('tr');
+
+	for (i = 0; i < c.length; i++) {
+		if (i == 20) {
+			table.appendChild(tr);
+			tr = document.createElement('tr');
+		}
+
+		var td = document.createElement('td');
+		td.style.border = "1px solid #999999";
+		var is_image;
+		if (i < 11) {
+			is_image = true;
+			td.width = "18px";
+			td.height = "17px";
+			td.rowSpan = "2";
+		} else {
+			is_image = false;
+			td.width = "8px";
+			td.height = "8px";
+		}
+		if (i != 19) {
+			add_tool(td, c[i][1], c[i][0], area.id, is_image);
+		} else {
+			var a = document.createElement('a');
+			a.onclick = makeDisplaySmileysOnclickHandler(area.id);
+			a.href = '#';
+			a.id = area.id.substr("area".length, area.id.length);
+
+			var image = document.createElement('img');
+			image.src = 'http://img.kraland.org/s/' + "01" + '.gif';
+			td.style.border = "1px solid #999999";
+			td.rowSpan = 2;
+			a.appendChild(image);
+			td.appendChild(a);
+		}
+		tr.appendChild(td);
+	}
+
+	table.appendChild(tr);
+	toolbar.appendChild(table);
+
+	for (i = 0; i < SMILEY_TAB_COUNT; i++) {
+		table = document.createElement('table');
+		table.style.display = "none";
+		table.style.border = "0";
+		table.cellSpacing = 1;
+		table.cellPadding = 0;
+		table.id = area.id + "smile" + i;
+		table.appendChild(createSmileysTable(i, area.id));
+		toolbar.appendChild(table);
+	}
+
+	area.parentNode.parentNode.insertBefore(toolbar, area.parentNode);
+}
 
 // The main function
 function main() {
 	if (isMainFrame()) {
-		if (OPTION_REFORMATER_TEXTE == 1) {
+		if (OPTION_REFORMATER_TEXTE === 1) {
 			removeBadQuotes(document.getElementsByClassName('forum-message')[0].getElementsByTagName('textarea')[0]);
 		}
 		// Tools, smileys etc...
 		var left_toolbar = document.getElementsByClassName('forum-cartouche');
 		// This add some rare characters, could be useful.
-		if (left_toolbar.length != 0) {
+		if (left_toolbar.length !== 0) {
 			var help_text = document.createElement('p');
 			help_text.innerHTML = "— « » À É";
 			left_toolbar[0].appendChild(help_text);
@@ -961,19 +1130,6 @@ function main() {
 			xhr.send();
 		});
 
-		/*
-			divMinHeightBottom.appendChild(document.createElement('script')).innerHTML = 
-				"function reloadIfAreaEmpty() {"+
-				"var textAreaByName = document.getElementsByName('minichatInput')[0];"+
-				"if( textAreaByName.value === '' ) {location.reload(true);} else {resetTimeout();}"+
-				"}"+
-				"var timeout = setTimeout('reloadIfAreaEmpty();', 60000);"+
-				"function resetTimeout() {"+
-				"clearTimeout(timeout);"+
-				"timeout = setTimeout('location.reload(true);',60000);"+
-				"}";
-		*/
-
 		divMinHeightBottom.appendChild(formMinichat);
 
 		// getting the new textArea
@@ -984,171 +1140,6 @@ function main() {
 
 		textAreaByName.focus();
 	}
-}
-
-/****************************************
- *		END SECURED FUNCTIONS			*
- *****************************************/
-
-function add_toolbar(area) {
-	var toolbar = document.createElement('span');
-
-	document.body.appendChild(document.createElement('script')).innerHTML = "var tagopen;\n" + add2tag;
-	document.body.appendChild(document.createElement('script')).innerHTML = "var tagopen;\n" + displaySmileysArea;
-
-	var c = new Array();
-	c[0] = new Array('b', b_str);
-	c[1] = new Array('i', i_str);
-	c[2] = new Array('u', u_str);
-	c[3] = new Array('strike', s_str);
-	c[4] = new Array('left', left_str);
-	c[5] = new Array('center', center_str);
-	c[6] = new Array('right', right_str);
-	c[7] = new Array('quote', quote_str);
-	c[8] = new Array('img', img_str);
-	c[9] = new Array('url', url_str);
-	c[10] = new Array('mail', mail_str);
-	c[11] = new Array("yellow", "#f4ac00");
-	c[12] = new Array("orange", "#f77400");
-	c[13] = new Array("fuchsia", "#ed6161");
-	c[14] = new Array("red", "#d50000");
-	c[15] = new Array("maroon", "#7b0000");
-	c[16] = new Array("brown", "#5e432d");
-	c[17] = new Array("purple", "purple");
-	c[18] = new Array("navy", "#00007b");
-	c[19] = new Array("smiley", "smiley");
-	c[20] = new Array("blue", "#2b2be4");
-	c[21] = new Array("lightblue", "#5577bc");
-	c[22] = new Array("teal", "#007b7b");
-	c[23] = new Array("lightgreen", "#219c5a");
-	c[24] = new Array("green", "#006f00");
-	c[25] = new Array("olive", "#7b7b00");
-	c[26] = new Array("gray", "#7b7b7b");
-	c[27] = new Array("darkgray", "#5a5a5a");
-
-
-	var table = document.createElement('table');
-	table.style.display = "inline";
-	table.style.border = "0";
-	table.cellSpacing = 1;
-	table.cellPadding = 0;
-
-	var tr = document.createElement('tr');
-
-	for (var i = 0; i < c.length; i++) {
-		if (i == 20) {
-			table.appendChild(tr);
-			tr = document.createElement('tr');
-		}
-
-		var td = document.createElement('td');
-		td.style.border = "1px solid #999999";
-		var is_image;
-		if (i < 11) {
-			is_image = true;
-			td.width = "18px";
-			td.height = "17px";
-			td.rowSpan = "2";
-		} else {
-			is_image = false;
-			td.width = "8px";
-			td.height = "8px";
-		}
-		if (i != 19) add_tool(td, c[i][1], c[i][0], area.id, is_image);
-		else if (!smiley) continue;
-		else {
-			var a = document.createElement('a');
-			a.href = 'javascript:displaySmileysArea("' + area.id + '")';
-			a.id = area.id.substr("area".length, area.id.length);
-
-			var image = document.createElement('img');
-			image.src = 'http://img.kraland.org/s/' + "01" + '.gif'
-			td.style.border = "1px solid #999999";
-			td.rowSpan = 2;
-			a.appendChild(image);
-			td.appendChild(a);
-		}
-		tr.appendChild(td);
-	}
-
-	table.appendChild(tr);
-	toolbar.appendChild(table);
-
-	if (smiley == 1) {
-		for (var i = 0; i < 6; i++) {
-			var table = document.createElement('table');
-			table.style.display = "none";
-			table.style.border = "0";
-			table.cellSpacing = 1;
-			table.cellPadding = 0;
-			table.id = area.id + "smile" + i;
-			table.appendChild(createSmileysTable(i, area.id));
-			toolbar.appendChild(table);
-		}
-	}
-
-	area.parentNode.parentNode.insertBefore(toolbar, area.parentNode);
-}
-
-
-function add_tool(node, str, tag, id, is_image) {
-	var a = document.createElement('a');
-	a.href = 'javascript:add2tag("' + tag + '", "' + id + '","1")';
-	a.id = id.substr("area".length, id.length);
-
-	if (is_image) {
-		var image = document.createElement('img');
-		image.src = str;
-		a.appendChild(image);
-	} else {
-		var div = document.createElement('div');
-		div.style.margin = "0";
-		div.style.width = "8px";
-		div.style.height = "8px";
-		div.style.backgroundColor = str;
-		a.appendChild(div);
-	}
-
-	a.addEventListener('mouseup', mouseUp, true);
-	node.appendChild(a);
-}
-
-function add2tag(tag, id, tagtype) {
-	textselect = document.getElementById(id);
-	if (textselect == null) return;
-
-	if (tag === "url" || tag === "mail") {
-		eq = "=";
-	} else {
-		eq = "";
-	}
-	var selLength = textselect.textLength;
-	var selStart = textselect.selectionStart;
-	var selEnd = textselect.selectionEnd;
-
-	if (selEnd == 1 || selEnd == 2)
-		selEnd = selLength;
-
-	var s1 = (textselect.value).substring(0, selStart);
-	var s2 = (textselect.value).substring(selStart, selEnd);
-	var s3 = (textselect.value).substring(selEnd, selLength);
-	if (textselect.selectionEnd &&
-		(textselect.selectionEnd - textselect.selectionStart > 0) && tagtype == 1) {
-		textselect.value = s1 + "[" + tag + eq + "]" + s2 + "[/" + tag + "]" + s3;
-		textselect.selectionStart = s1.length;
-		textselect.selectionEnd = textselect.textLength - s3.length;
-	} else {
-		if (tagopen == tag && tagtype == 1) {
-			textselect.value = s1 + "[/" + tag + "]" + s3;
-			tagopen = '';
-		} else {
-			textselect.value = s1 + "[" + tag + eq + "]" + s3;
-			tagopen = tag;
-		}
-		textselect.selectionStart = textselect.textLength - s3.length;
-		textselect.selectionEnd = textselect.textLength - s3.length;
-	}
-	textselect.focus();
 }
 
 main();
