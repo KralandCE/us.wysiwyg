@@ -2,7 +2,7 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.18
+// @version   1.0.19
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
@@ -24,7 +24,14 @@ var OPTION_REFORMATER_TEXTE = 1;
 
 /*
 
+1.0.19
+Adding error message when tags are not matched properly.
+Keeping text focus when switching from one smiley tab to another.
+
 1.0.18
+Fixing link # to jump with event cancelling.
+
+1.0.17
 Fixing link # to jump with event cancelling.
 
 1.0.16
@@ -724,7 +731,7 @@ function convert(text) {
 		text: text,
 		removeMisalignedTags: false,
 		addInLineBreaks: false
-	}).html;
+	});
 }
 
 function updatePreview(area) {
@@ -733,20 +740,21 @@ function updatePreview(area) {
 	}
 
 	var doc = document;
-	var str;
+	var bbcode;
 	// Simple check for the italic checkbox, only in the popup window
 	if (isItalic(area)) {
-		str = convert('[i]' + area.value + '[/i]');
+		bbcode = convert('[i]' + area.value + '[/i]');
 	} else {
-		str = convert(area.value);
+		bbcode = convert(area.value);
 	}
+
+	var str = bbcode.html;
 
 	var id = area.id.substr("area".length, area.id.length);
 	var prev = doc.getElementById('preview' + id);
 	var foot = doc.getElementById('footer' + id);
 
-	// Replace some shit with true badass <br/> tags ! Beware of the <br/> tags, they could kill you while you're sleeping
-	// Rico is tired ^
+	// Replace newline by <br/> tags
 	var endl = /(\r\n|\n\r|\r|\n)/g;
 	var count = 0;
 	prev.innerHTML = str.replace(endl, function (match, g1, g2, position, input) {
@@ -763,8 +771,13 @@ function updatePreview(area) {
 	if (nbCarac !== null) {
 		count = count + 3 * nbCarac.length;
 	}
+	
+	var errorStr = '';
+	if (bbcode.error) {
+		errorStr = '<span style="color:red">Des balises ne font pas fermées correctement.</span>';
+	}
 
-	foot.innerHTML = area.value.length + count + " caractères";
+	foot.innerHTML = area.value.length + count + " caractères. " + errorStr;
 }
 
 // Update the previsualisation area and display the character's counter when the keyup event is triggered
@@ -915,6 +928,14 @@ function addTag(tag, id) {
 	}
 }
 
+function keepFocus(id) {
+	var selection = getSelection(id);
+
+	if (selection !== null) {
+		selection.htmlText.focus();
+	}
+}
+
 function makeSmileyOnclickHandler(smileyTagString, htmlIdentifier) {
 	return function (event) {
 		addSmileyTag(smileyTagString, htmlIdentifier);
@@ -938,6 +959,7 @@ function makeTagOnclickHandler(tagString, htmlIdentifier) {
 function makeDisplaySmileysOnclickHandler(textareaIdentifier) {
 	return function (event) {
 		displaySmileysArea(textareaIdentifier);
+		keepFocus(textareaIdentifier);
 		event.preventDefault();
 		event.stopPropagation();
 		return false;
@@ -1077,7 +1099,7 @@ function add_toolbar(area) {
 	a.id = area.id.substr("area".length, area.id.length);
 
 	var image = document.createElement('img');
-	image.src = 'http://img.kraland.org/s/' + "01" + '.gif';
+	image.src = SMILEYS_64[0];
 
 	a.appendChild(image);
 	td.appendChild(a);
