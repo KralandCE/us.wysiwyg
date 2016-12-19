@@ -2,7 +2,7 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.16
+// @version   1.0.17
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
@@ -23,6 +23,9 @@ var OPTION_REFORMATER_TEXTE = 1;
 
 
 /*
+1.0.17
+Fixing link # to jump with event cancelling.
+
 1.0.16
 Changing event from onmouseclick to onmousedown since mouse click is focusing the link tag instead of keeping it in the textarea. Mouse down does not have that side effect.
 
@@ -912,7 +915,8 @@ function addTag(tag, id) {
 }
 
 function makeSmileyOnclickHandler(smileyTagString, htmlIdentifier) {
-	return function () {
+	return function (event) {
+		event.preventDefault();
 		addSmileyTag(smileyTagString, htmlIdentifier);
 		updateAllPreviews();
 		return false;
@@ -920,7 +924,8 @@ function makeSmileyOnclickHandler(smileyTagString, htmlIdentifier) {
 }
 
 function makeTagOnclickHandler(tagString, htmlIdentifier) {
-	return function () {
+	return function (event) {
+		event.preventDefault();
 		addTag(tagString, htmlIdentifier);
 		updateAllPreviews();
 		return false;
@@ -928,7 +933,8 @@ function makeTagOnclickHandler(tagString, htmlIdentifier) {
 }
 
 function makeDisplaySmileysOnclickHandler(textareaIdentifier) {
-	return function () {
+	return function (event) {
+		event.preventDefault();
 		displaySmileysArea(textareaIdentifier);
 		return false;
 	};
