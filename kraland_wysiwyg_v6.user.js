@@ -2,7 +2,7 @@
 // @name           Kraland Wysiwyg V6
 // @namespace      ki
 // @description    Ajoute une zone de prévisualisation dynamique à l'éditeur de kramail, au forum et aux déclarations in game et reformate un texte quoté.
-// @version   1.0.11
+// @version   1.0.12
 // @include        http://www.kraland.org/*
 // @grant       none
 // ==/UserScript==
@@ -31,6 +31,22 @@ var smiley = 1;
 
 /* Fin des options
  *********************************************************************************************** */
+
+
+/*
+	1.0.12 :
+	fixed spoiler tag description
+	
+	1.0.11
+	dummy maj for update
+
+	1.0.10 :
+	removing unused bbcode
+	adding kraland bbcode
+	adding BBCode Parser library
+	custom process function from library ( tagged with @since and @removed )
+*/
+
 
 var b_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHT4ACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJqcl5MDoKGVkZKiAKaWmKiZpImro6qgp6+tswOuspOeuLe2lLWmtJi2ob2WnJq7yLrLlYEAOw==";
 var i_str = "data:image/gif;base64,R0lGODlhEgARAMZHAP/6zJmZmf//+wAAAP//0gAAe3t7AFV3vCGcWlpaWtUAAPd0AF5DLXt7ewB7e3sAAO1hYfSsAHsAewBvACsr5Pn7gf/r64R7hO7MmfX7+Sgzls7OzmOcpYm44ns/Ozyc5r29vYTW3jdU0sa9vUIAAAALTAgAAL29xtb//4R7e87//5SUlISEQnuEe///AJQAAFJKUpx7e7UYIcnS6gAIAFJCQmNKSv/exicpTe/vkHNaWm9gYMa9xjk5OaUICIyEQq2EhJB7ezExMa0xMUJCQlJCSmRlSP///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAAEgARAAAHXIACgoOEhYQEAACIiomLjgACiZKTlJICi5WZkJUYA54DGJSXlTEDMKGinDADMZmjk6WnrpQYq62umABAA0SolZGSGDsDO5qQmJ09vr+JnZ+gmq/GqdO/udWb2JOBADs=";
@@ -141,13 +157,6 @@ THE SOFTWARE.
 
     This module allows you to parse BBCode and to extend to the mark-up language
     to add in your own tags.
-*/
-
-/*
-	1.0.10 :
-	removing unused bbcode
-	adding kraland bbcode
-	adding call to replaceAllSmileys(text) before escaping '[' and ']' since smileys do not have closing tags.
 */
 
 var XBBCODE = (function () {
@@ -274,10 +283,10 @@ var XBBCODE = (function () {
 		},
 		"spoiler": {
 			openTag: function (params, content) {
-				return '<div class="pre-spoiler>';
+				return '<div><div class="pre-spoiler"><span style="float:left; padding-top: 2px;">Spoiler</span><input type="button" value="Voir" class="see-spoiler" onclick="spoiler(this);"></div><div><div class="spoiler" style="display: none;">';
 			},
 			closeTag: function (params, content) {
-				return '</div>';
+				return '</div></div></div>';
 			}
 		},
 		"url": {
